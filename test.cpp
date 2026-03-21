@@ -55,13 +55,24 @@ bool CheatingWorker::isRunning() const
     return isRunning_.load();
 }
 
+Progress CheatingWorker::getHp() const
+{
+    return hp_.load();
+}
+
+Progress CheatingWorker::getMp() const
+{
+    return mp_.load();
+}
+
+int CheatingWorker::getArrowCount() const
+{
+    return arrowNum_.load();
+}
+
 void CheatingWorker::work()
 {
     using namespace std::chrono;
-
-    Progress hp;
-    Progress mp;
-    int arrowNum = 0;
 
     bool isWindowCreated = false;
     const CheatingConfig& cheatingCfg = cheatingConfig_;
@@ -110,11 +121,11 @@ void CheatingWorker::work()
             currFrame = gameFrameUtils.getHandledMainGameAreaFrame(frame).clone();
 
             // Identify HP and MP.
-            hp = identifyHpMp(gameFrameUtils.getHpAreaFrame(frame));
-            mp = identifyHpMp(gameFrameUtils.getMpAreaFrame(frame));
+            hp_.store(identifyHpMp(gameFrameUtils.getHpAreaFrame(frame)));
+            mp_.store(identifyHpMp(gameFrameUtils.getMpAreaFrame(frame)));
 
             // If the HP is low, press F5 to use potion.
-            if (hp.current > 0 && hp.getPercentage() < cheatingCfg.hpThresholdPercent)
+            if (hp_.load().current > 0 && hp_.load().getPercentage() < cheatingCfg.hpThresholdPercent)
                 hid::pressKey(hid_, VK_F5);
 
             // The difference area between two frames.
@@ -195,12 +206,13 @@ void CheatingWorker::work()
                                     hid::pressKey(hid_, VK_F5);
 
                                 // Get current arrow count.
-                                arrowNum = identifyNum(gameFrameUtils.getArrowAreaFrame(newFrame));
+                                int currentArrowCount = identifyNum(newFrame);
+                                arrowNum = currentArrowCount;
 
-                                if (arrowNum != lastArrowCount)
+                                if (currentArrowCount != lastArrowCount)
                                 {
                                     // Arrow count changed, monster is still alive.
-                                    lastArrowCount = arrowNum;
+                                    lastArrowCount = currentArrowCount;
                                     lastArrowChangeTime = steady_clock::now();
                                 }
                                 else
@@ -228,11 +240,13 @@ void CheatingWorker::work()
                                     }
                                     cv::putText(newFrame, "Attacking: " + recognizedText,
                                         cv::Point(5, 60), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255));
-                                    cv::putText(newFrame, "Arrows: " + std::to_string(arrowNum),
+                                    cv::putText(newFrame, "Arrows: " + std::to_string(currentArrowCount),
                                         cv::Point(5, 80), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255));
                                     cv::imshow(debugModeConfig_.windowName, newFrame);
                                     cv::waitKey(1);
                                 }
+
+                                std::this_thread::sleep_for(milliseconds(33));
                             }
                             else
                             {
@@ -249,24 +263,30 @@ void CheatingWorker::work()
                     }
                 }
 
+                // Remove the processed diff rect.
                 diffRects.pop_back();
-            }
 
-            // Debug mode info display.
-            if (debugModeConfig_.showWindow)
-            {
-                isWindowCreated = true;
-                if (debugModeConfig_.showHpMp)
+                // If we found and attacked a target, break out to next main loop iteration.
+                if (gotTarget)
+                    break;
+
+                // Debug mode info display.
+                if (debugModeConfig_.showWindow)
                 {
-                    cv::putText(frame, "HP: " + hp.toString(),
-                        cv::Point(5, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
-                    cv::putText(frame, "MP: " + mp.toString(),
-                        cv::Point(5, 40), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
+                    isWindowCreated = true;
+                    if (debugModeConfig_.showHpMp)
+                    {
+                        cv::putText(frame, "HP: " + hp_.load().toString(),
+                            cv::Point(5, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
+                        cv::putText(frame, "MP: " + mp_.load().toString(),
+                            cv::Point(5, 40), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
+                    }
+                    cv::imshow(debugModeConfig_.windowName, frame);
+                    cv::waitKey(1);
                 }
-                cv::imshow(debugModeConfig_.windowName, frame);
-                cv::waitKey(1);
             }
 
+            std::this_thread::sleep_for(milliseconds(33)); // 30 FPS
         }
         else
         {

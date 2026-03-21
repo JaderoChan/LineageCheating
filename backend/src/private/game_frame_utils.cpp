@@ -24,6 +24,11 @@ cv::Mat GameFrameUtils::getMpAreaFrame(const cv::Mat& frame) const
     return cropImageProportioned(frame, config_.mpRect);
 }
 
+cv::Mat GameFrameUtils::getArrowAreaFrame(const cv::Mat& frame) const
+{
+    return cropImageProportioned(frame, config_.arrowRect);
+}
+
 cv::Mat GameFrameUtils::getHandledMainGameAreaFrame(cv::Mat& frame) const
 {
     setPlayerAreaToBlack(frame);

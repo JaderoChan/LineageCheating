@@ -30,6 +30,12 @@ struct CheatingConfig
         0.605044,
         0.804665
     };
+    FrameProportionRect arrowRect = {
+        0.1,
+        0.2,
+        0.2,
+        0.3
+    };
 
     int textRegionExpansionX = 50;
     int textRegionExpansionY = 50;

@@ -13,6 +13,7 @@ public:
     cv::Mat getPlayerAreaFrame(const cv::Mat& frame) const;
     cv::Mat getHpAreaFrame(const cv::Mat& frame) const;
     cv::Mat getMpAreaFrame(const cv::Mat& frame) const;
+    cv::Mat getArrowAreaFrame(const cv::Mat& frame) const;
 
     cv::Mat getHandledMainGameAreaFrame(cv::Mat& frame) const;
 
