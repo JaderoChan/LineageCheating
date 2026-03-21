@@ -23,8 +23,7 @@ Progress Progress::fromString(const std::string& text)
     return progress;
 }
 
-std::ostream& operator<<(std::ostream& os, const Progress& progress)
+std::string Progress::toString() const
 {
-    os << progress.current << "/" << progress.total;
-    return os;
+    return std::to_string(current) + "/" + std::to_string(total);
 }

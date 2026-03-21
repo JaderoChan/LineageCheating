@@ -4,61 +4,42 @@ GameFrameUtils::GameFrameUtils(const CheatingConfig& config)
     : config_(config)
 {}
 
-void GameFrameUtils::setConfig(const CheatingConfig& config)
+cv::Mat GameFrameUtils::getMainGameAreaFrame(const cv::Mat& frame) const
 {
-    config_.store(config);
+    return cropImageProportioned(frame, config_.mainRect);
 }
 
-void GameFrameUtils::setGameFrame(cv::Mat* gameFrame)
+cv::Mat GameFrameUtils::getPlayerAreaFrame(const cv::Mat& frame) const
 {
-    gameFrame_ = gameFrame;
+    return cropImageProportioned(frame, config_.playerRect);
 }
 
-void GameFrameUtils::unsetGameFrame()
+cv::Mat GameFrameUtils::getHpAreaFrame(const cv::Mat& frame) const
 {
-    gameFrame_ = nullptr;
+    return cropImageProportioned(frame, config_.hpRect);
 }
 
-cv::Mat GameFrameUtils::getMainGameAreaFrame() const
+cv::Mat GameFrameUtils::getMpAreaFrame(const cv::Mat& frame) const
 {
-    if (!gameFrame_)
-        return cv::Mat();
-    return cropImageProportioned(*gameFrame_, config_.load().mainRect);
+    return cropImageProportioned(frame, config_.mpRect);
 }
 
-cv::Mat GameFrameUtils::getPlayerAreaFrame() const
+cv::Mat GameFrameUtils::getHandledMainGameAreaFrame(cv::Mat& frame) const
 {
-    if (!gameFrame_)
-        return cv::Mat();
-    return cropImageProportioned(*gameFrame_, config_.load().playerRect);
+    setPlayerAreaToBlack(frame);
+    return getMainGameAreaFrame(frame);
 }
 
-cv::Mat GameFrameUtils::getHpAreaFrame() const
+cv::Rect GameFrameUtils::mapMainGameAreaRectToSource(const cv::Mat& frame, const cv::Rect& rect) const
 {
-    if (!gameFrame_)
-        return cv::Mat();
-    return cropImageProportioned(*gameFrame_, config_.load().hpRect);
-}
-
-cv::Mat GameFrameUtils::getMpAreaFrame() const
-{
-    if (!gameFrame_)
-        return cv::Mat();
-    return cropImageProportioned(*gameFrame_, config_.load().mpRect);
-}
-
-cv::Rect GameFrameUtils::mapMainGameAreaRectToSource(const cv::Rect& rect) const
-{
-    const auto& mainRect = config_.load().mainRect;
+    const auto& mainRect = config_.mainRect;
     cv::Point lt(
-        static_cast<int>(std::round(mainRect.ltx * gameFrame_->cols)),
-        static_cast<int>(std::round(mainRect.lty * gameFrame_->rows)));
+        static_cast<int>(std::round(mainRect.ltx * frame.cols)),
+        static_cast<int>(std::round(mainRect.lty * frame.rows)));
     return cv::Rect(lt + rect.tl(), rect.size());
 }
 
-void GameFrameUtils::setPlayerAreaToBlack()
+void GameFrameUtils::setPlayerAreaToBlack(cv::Mat& frame) const
 {
-    if (!gameFrame_)
-        return;
-    getPlayerAreaFrame().setTo(cv::Scalar(0.0, 0.0, 0.0));
+    getPlayerAreaFrame(frame).setTo(cv::Scalar(0.0, 0.0, 0.0));
 }

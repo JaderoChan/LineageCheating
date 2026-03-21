@@ -34,7 +34,7 @@ struct CheatingConfig
     int textRegionExpansionX = 50;
     int textRegionExpansionY = 50;
 
-    int sleepAfterMove = 100;
+    int sleepAfterMove = 20;
 
     int continuousAttackTime = 0;   // unit in millisecond
 };
