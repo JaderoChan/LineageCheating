@@ -113,7 +113,9 @@ void CheatingWorker::work()
             hp = identifyHpMp(gameFrameUtils.getHpAreaFrame(frame));
             mp = identifyHpMp(gameFrameUtils.getMpAreaFrame(frame));
 
-            // TODO: if the HP is low, press F5.
+            // If the HP is low, press F5 to use potion.
+            if (hp.current > 0 && hp.getPercentage() < cheatingCfg.hpThresholdPercent)
+                hid::pressKey(hid_, VK_F5);
 
             // The difference area between two frames.
             std::vector<cv::Rect> diffRects = getImageDiffs(prevFrame, currFrame);
@@ -136,6 +138,9 @@ void CheatingWorker::work()
                 textRect.y -= cheatingCfg.textRegionExpansionY;
                 textRect.width += cheatingCfg.textRegionExpansionX * 2;
                 textRect.height += cheatingCfg.textRegionExpansionY * 2;
+
+                // Clamp the expanded rect to frame boundaries.
+                textRect &= cv::Rect(0, 0, frame.cols, frame.rows);
 
                 // TODO
 
