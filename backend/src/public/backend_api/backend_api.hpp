@@ -22,10 +22,6 @@ public:
 
     bool isRunning() const;
 
-    Progress getHp() const;
-    Progress getMp() const;
-    int getArrowCount() const;
-
 private:
     void work();
 
@@ -39,8 +35,4 @@ private:
 
     NDIlib_recv_instance_t recv_;
     hid::HID hid_;
-
-    std::atomic<Progress> hp_;
-    std::atomic<Progress> mp_;
-    std::atomic<int> arrowNum_{0};
 };

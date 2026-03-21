@@ -33,7 +33,6 @@ CheatingConfig loadCheatingConfigFromJson(const std::string& json)
         config.playerRect = loadRectFromJsonObject(j.at("playerRect"));
         config.hpRect = loadRectFromJsonObject(j.at("hpRect"));
         config.mpRect = loadRectFromJsonObject(j.at("mpRect"));
-        config.continuousAttackTime = j.at("continuousAttackTime");
     }
     catch (const std::exception& e)
     {

@@ -34,9 +34,11 @@ struct CheatingConfig
     int textRegionExpansionX = 50;
     int textRegionExpansionY = 50;
 
+    // unit in millisecond
     int sleepAfterMove = 20;
+    int arrowUnchangedTimeThreshold = 50;
 
-    int continuousAttackTime = 0;   // unit in millisecond
+    double hpThresholdPercent = 0.3;
 };
 
 struct DebugModeConfig

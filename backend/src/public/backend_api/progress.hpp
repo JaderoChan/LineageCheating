@@ -11,7 +11,7 @@ public:
     static Progress fromString(const std::string& text);
     std::string toString() const;
 
-    double progress() const { return total == 0 ? 0 : static_cast<double>(current) / total; }
+    double getPercentage() const { return total == 0 ? 0 : static_cast<double>(current) / total; }
     bool isValid() const { return current <= total; }
 
     int current = 0;

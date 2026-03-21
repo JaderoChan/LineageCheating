@@ -6,10 +6,12 @@
 #include <opencv2/opencv.hpp>
 
 #include <private/game_frame_utils.hpp>
-#include <private/identifyHpMp.hpp>
+#include <private/identify_hp_mp.hpp>
+#include <private/identify_num.hpp>
 #include <private/opencv_utils.hpp>
 #include <private/text_detect_mser.hpp>
 #include <private/ocr.hpp>
+#include <private/monster_name.hpp>
 
 #include "hid_api.hpp"
 
@@ -53,24 +55,13 @@ bool CheatingWorker::isRunning() const
     return isRunning_.load();
 }
 
-Progress CheatingWorker::getHp() const
-{
-    return hp_.load();
-}
-
-Progress CheatingWorker::getMp() const
-{
-    return mp_.load();
-}
-
-int CheatingWorker::getArrowCount() const
-{
-    return arrowNum_.load();
-}
-
 void CheatingWorker::work()
 {
     using namespace std::chrono;
+
+    Progress hp;
+    Progress mp;
+    int arrowNum;
 
     bool isWindowCreated = false;
     const CheatingConfig& cheatingCfg = cheatingConfig_;
@@ -111,6 +102,7 @@ void CheatingWorker::work()
         {
             cv::Mat frame = cv::Mat(videoFrame.yres, videoFrame.xres, CV_8UC4,
                 videoFrame.p_data, videoFrame.line_stride_in_bytes).clone();
+            NDIlib_framesync_free_video(frameSync, &videoFrame);
 
             // Main cheating code
 
@@ -118,32 +110,34 @@ void CheatingWorker::work()
             currFrame = gameFrameUtils.getHandledMainGameAreaFrame(frame).clone();
 
             // Identify HP and MP.
-            hp_.store(identifyHpMp(gameFrameUtils.getHpAreaFrame(frame)));
-            mp_.store(identifyHpMp(gameFrameUtils.getMpAreaFrame(frame)));
+            hp = identifyHpMp(gameFrameUtils.getHpAreaFrame(frame));
+            mp = identifyHpMp(gameFrameUtils.getMpAreaFrame(frame));
 
-            bool gotTarget = false;
+            // TODO: if the HP is low, press F5.
+
             // The difference area between two frames.
             std::vector<cv::Rect> diffRects = getImageDiffs(prevFrame, currFrame);
-            while (!diffRects.empty() && !gotTarget)
+            while (!diffRects.empty())
             {
-                // Map the cropped image back to the original image coordinate system.
-                auto rect = gameFrameUtils.mapMainGameAreaRectToSource(frame, diffRects.back());
+                bool gotTarget = false;
 
+                // Map the cropped image back to the original image coordinate system.
+                auto textRect = gameFrameUtils.mapMainGameAreaRectToSource(frame, diffRects.back());
                 if (debugModeConfig_.showDiffRect)
-                    cv::rectangle(frame, rect, cv::Scalar(0, 255, 0));
+                    cv::rectangle(frame, textRect, cv::Scalar(0, 255, 0));
 
                 // Move the mouse to the place where the frame changes.
-                cv::Point centerPt = (rect.tl() + rect.br()) / 2;
+                cv::Point centerPt = (textRect.tl() + textRect.br()) / 2;
                 hid::moveMouseTo(hid_, centerPt.x, centerPt.y);
                 std::this_thread::sleep_for(microseconds(cheatingCfg.sleepAfterMove));
 
                 // Expand text recognition range.
-                rect.x -= cheatingCfg.textRegionExpansionX;
-                rect.y -= cheatingCfg.textRegionExpansionY;
-                rect.width += cheatingCfg.textRegionExpansionX * 2;
-                rect.height += cheatingCfg.textRegionExpansionY * 2;
+                textRect.x -= cheatingCfg.textRegionExpansionX;
+                textRect.y -= cheatingCfg.textRegionExpansionY;
+                textRect.width += cheatingCfg.textRegionExpansionX * 2;
+                textRect.height += cheatingCfg.textRegionExpansionY * 2;
 
-                // Get new frame
+                // TODO
 
                 diffRects.pop_back();
             }
@@ -154,9 +148,9 @@ void CheatingWorker::work()
                 isWindowCreated = true;
                 if (debugModeConfig_.showHpMp)
                 {
-                    cv::putText(frame, "HP: " + hp_.load().toString(),
+                    cv::putText(frame, "HP: " + hp.toString(),
                         cv::Point(5, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
-                    cv::putText(frame, "MP: " + mp_.load().toString(),
+                    cv::putText(frame, "MP: " + mp.toString(),
                         cv::Point(5, 40), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
                 }
                 cv::imshow(debugModeConfig_.windowName, frame);
@@ -165,8 +159,10 @@ void CheatingWorker::work()
 
             std::this_thread::sleep_for(milliseconds(33)); // 30 FPS
         }
-
-        NDIlib_framesync_free_video(frameSync, &videoFrame);
+        else
+        {
+            NDIlib_framesync_free_video(frameSync, &videoFrame);
+        }
     }
 
     NDIlib_framesync_destroy(frameSync);
