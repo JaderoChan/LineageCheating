@@ -43,7 +43,7 @@ struct CheatingConfig
     // unit in millisecond
     int sleepAfterMove = 20;
     int arrowUnchangedTimeThreshold = 800;
-    int fps = 15;
+    int fps = 10;
 
     double hpThresholdPercent = 0.3;
 };

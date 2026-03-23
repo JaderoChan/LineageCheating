@@ -94,6 +94,7 @@ void CheatingWorker::work()
                 return frame;
             }
             NDIlib_framesync_free_video(frameSync, &videoFrame);
+            std::this_thread::sleep_for(milliseconds(2));
         }
         return cv::Mat();
     };
@@ -206,6 +207,7 @@ void CheatingWorker::work()
                 if (isMonsterName(box.text))
                 {
                     attackTarget = box.text;
+                    printf("Is monster: %s\n", attackTarget.c_str());
 
                     // Press shift
                     hid::pressKey(hid_, VK_LSHIFT);
