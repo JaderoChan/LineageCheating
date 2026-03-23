@@ -68,8 +68,11 @@ void CheatingWorker::work()
     const DebugModeConfig& debugCfg = debugModeConfig_;
     GameFrameUtils gameFrameUtils(cheatingCfg);
 
+    milliseconds frameTimeInterval(1000 / cheatingCfg.fps);
+
     NDIlib_framesync_instance_t frameSync = NDIlib_framesync_create(recv_);
-    auto getNewValidFrame = [frameSync, this]() -> cv::Mat
+    auto lastGetFrameTime = high_resolution_clock::now();
+    auto getNewValidFrame = [=, &lastGetFrameTime]() -> cv::Mat
     {
         NDIlib_video_frame_v2_t videoFrame;
         while (!shouldClose_.load())
@@ -83,7 +86,11 @@ void CheatingWorker::work()
                     videoFrame.p_data, videoFrame.line_stride_in_bytes).clone();
                 NDIlib_framesync_free_video(frameSync, &videoFrame);
                 cv::cvtColor(frame, frame, cv::COLOR_BGRA2BGR);
-                printf("Get new frame\n");
+
+                auto interval = high_resolution_clock::now() - lastGetFrameTime;
+                if (interval < frameTimeInterval)
+                    std::this_thread::sleep_for(frameTimeInterval - interval);
+
                 return frame;
             }
             NDIlib_framesync_free_video(frameSync, &videoFrame);
@@ -125,7 +132,7 @@ void CheatingWorker::work()
         attackTarget.clear();
 
         cv::Mat frame = getNewValidFrame();
-        prevFrame = currFrame.clone();
+        prevFrame = currFrame;
         currFrame = gameFrameUtils.getMainGameAreaFrame(frame);
 
         // Identify HP and MP.
@@ -140,7 +147,7 @@ void CheatingWorker::work()
 
         // The difference area between two frames.
         std::vector<cv::Rect> diffRects = getImageDiffs(prevFrame, currFrame);
-        if (!diffRects.empty())
+        if (diffRects.size() > 10)
             diffRects.resize(10);
 
         if (debugModeConfig_.showWindow && debugModeConfig_.showDiffRect)
@@ -175,6 +182,9 @@ void CheatingWorker::work()
             diffRect &= cv::Rect(0, 0, frame.cols, frame.rows);
 
             frame = getNewValidFrame();
+            prevFrame = currFrame;
+            currFrame = gameFrameUtils.getMainGameAreaFrame(frame);
+
             showDebugFrame(frame);
 
             auto& ocrLite = getOcrLiteInstance();
@@ -195,7 +205,6 @@ void CheatingWorker::work()
 
                 if (isMonsterName(box.text))
                 {
-                    printf("Is Monster name: %s\n", box.text.c_str());
                     attackTarget = box.text;
 
                     // Press shift
@@ -210,7 +219,7 @@ void CheatingWorker::work()
                     while (!shouldClose_.load())
                     {
                         frame = getNewValidFrame();
-                        prevFrame = currFrame.clone();
+                        prevFrame = currFrame;
                         currFrame = gameFrameUtils.getMainGameAreaFrame(frame);
 
                         // Identify HP and MP.
