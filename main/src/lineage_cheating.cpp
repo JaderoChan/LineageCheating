@@ -6,7 +6,7 @@
 #include "command_line_menu.hpp"
 #include "format_string.hpp"
 
-#define DISABLE_HID
+// #define DISABLE_HID
 
 struct UserData
 {
@@ -27,13 +27,11 @@ struct UserData
     CommandLineMenu* menu;
 };
 
-static void setupCheatingWorker(void* userData);
-static void cleanupCheatingWorker(void* userData);
+static void setupCheatingWorker(UserData* data);
+static void cleanupCheatingWorker(UserData* data);
 
-void setupCheatingWorker(void* userData)
+void setupCheatingWorker(UserData* data)
 {
-    UserData* data = static_cast<UserData*>(userData);
-
     auto failHandler = [&](NDIlib_recv_instance_t& recv)
     {
         data->worker = nullptr;
@@ -43,6 +41,7 @@ void setupCheatingWorker(void* userData)
         {
             NDIlib_recv_destroy(recv);
             recv = nullptr;
+            data->recv = nullptr;
         }
     };
 
@@ -104,6 +103,8 @@ void setupCheatingWorker(void* userData)
             if (CommandLineMenu::getkey() == 0x1B)
             {
                 printf("User cancel configure.\n");
+                hid::closeHID(hid);
+                hid = nullptr;
                 failHandler(recv);
                 return;
             }
@@ -134,13 +135,11 @@ void setupCheatingWorker(void* userData)
     data->worker = worker;
     data->hid = hid;
     data->menu->setOptionText(data->index, data->sourceName + " (Configured)");
-    data->menu->setOptionCallback(data->index, cleanupCheatingWorker, userData);
+    data->menu->setOptionCallback(data->index, [data]() {cleanupCheatingWorker(data); });
 }
 
-void cleanupCheatingWorker(void* userData)
+void cleanupCheatingWorker(UserData* data)
 {
-    UserData* data = static_cast<UserData*>(userData);
-
     if (!data->configureSuccess)
         return;
 
@@ -161,7 +160,7 @@ void cleanupCheatingWorker(void* userData)
     if (data->hid)
     {
         hid::releaseAllKey(data->hid);
-        hid::relaseAllMouseButton(data->hid);
+        hid::releaseAllMouseButton(data->hid);
 
         // Close HID device.
         hid::closeHID(data->hid);
@@ -178,12 +177,12 @@ void cleanupCheatingWorker(void* userData)
     // Reset menu option and user data.
     data->configureSuccess = false;
     data->menu->setOptionText(data->index, data->sourceName + " (Not Configured)");
-    data->menu->setOptionCallback(data->index, setupCheatingWorker, userData);
+    data->menu->setOptionCallback(data->index, [data]() { setupCheatingWorker(data); });
 
     printf("Clean up Cheating Worker successfully.\n");
 }
 
-void lineageCheating()
+void lineageCheating(bool& needRefresh)
 {
     // TODO: input the config file path.
     CheatingConfig cheatingCfg;
@@ -202,6 +201,7 @@ void lineageCheating()
     if (!ndiFinder)
     {
         printf("Failed to create NDI finder.\n");
+        NDIlib_destroy();
         return;
     }
 
@@ -255,12 +255,11 @@ void lineageCheating()
         data.menu = &menu;
 
         userDatas.emplace_back(data);
-        menu.addOption(sourceName + " (Not Configured)", setupCheatingWorker, &userDatas.back());
+        menu.addOption(sourceName + " (Not Configured)", [&userDatas, i]() { setupCheatingWorker(&userDatas[i]); });
     }
 
-    menu.addOption("Exit",
-        [](void* menu) { static_cast<CommandLineMenu*>(menu)->endReceiveInput(); },
-        &menu, false, false);
+    menu.addOption("Refresh", [&]() { needRefresh = true; menu.endReceiveInput(); }, false, false);
+    menu.addOption("Exit", [&menu]() { menu.endReceiveInput(); }, false, false);
 
     menu.show();
     menu.startReceiveInput();

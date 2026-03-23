@@ -34,7 +34,7 @@ int releaseMouseButton(HID hid, int button);
 
 int clickMouseButton(HID hid, int button, int repeatCount = 1);
 
-int relaseAllMouseButton(HID hid);
+int releaseAllMouseButton(HID hid);
 
 /// @return 0: Release status. 1: Pressed status. -1: Failed to get status.
 int getMouseButtonState(HID hid, int button);

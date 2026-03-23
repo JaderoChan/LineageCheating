@@ -78,7 +78,7 @@ int clickMouseButton(HID hid, int button, int repeatCount)
     }
 }
 
-int relaseAllMouseButton(HID hid)
+int releaseAllMouseButton(HID hid)
 {
     return M_ReleaseAllMouse(hid);
 }

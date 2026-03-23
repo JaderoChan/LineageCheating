@@ -32,6 +32,7 @@
 #include <cstdlib>      // system()
 #include <array>        // array
 #include <atomic>       // atomic
+#include <functional>   // function
 #include <stdexcept>    // runtime_error
 #include <iostream>     // cout, endl
 #include <string>       // string
@@ -79,10 +80,6 @@ public:
     };
 #endif // COMMAND_LINE_MENU_USE_24BIT_COLOR
 
-    using VoidFunc      = void (*)();
-    using Arg           = void*;
-    using ArgFunc       = void (*)(Arg);
-
     CommandLineMenu() : shouldEndReceiveInput_(false) {};
 
     ~CommandLineMenu() = default;
@@ -124,24 +121,10 @@ public:
     /// @param optionText       The text displayed for the option.
     /// @param callbackFunc     The callback function to execute when the option is selected.
     /// @param enableNewPage    Whether to clear the console before executing the callback.
-    void addOption(const std::string& optionText, VoidFunc callbackFunc,
+    void addOption(const std::string& optionText, const std::function<void ()>& callbackFunc,
         bool enableNewPage = true, bool waitKeyAfterEnd = true)
     {
         options_.push_back(Option { enableNewPage, waitKeyAfterEnd, optionText, callbackFunc });
-        if (enableAutoAdjustOptionTextWidth_ && optionText.size() + reserveSpace > optionTextWidth_)
-            optionTextWidth_ = optionText.size() + reserveSpace;
-    }
-
-    /// @overload
-    /// @brief Add a new option to the end of the menu.
-    /// @param optionText       The text displayed for the option.
-    /// @param callbackFunc     The callback function with an argument.
-    /// @param arg              The argument to pass to the callback function.
-    /// @param enableNewPage    Whether to clear the console before executing the callback.
-    void addOption(const std::string& optionText, ArgFunc callbackFunc, Arg arg,
-        bool enableNewPage = true, bool waitKeyAfterEnd = true)
-    {
-        options_.push_back(Option { enableNewPage, waitKeyAfterEnd, optionText, CallbackFunc(callbackFunc, arg) });
         if (enableAutoAdjustOptionTextWidth_ && optionText.size() + reserveSpace > optionTextWidth_)
             optionTextWidth_ = optionText.size() + reserveSpace;
     }
@@ -151,27 +134,10 @@ public:
     /// @param optionText       The text displayed for the option.
     /// @param callbackFunc     The callback function to execute when the option is selected.
     /// @param enableNewPage    Whether to clear the console before executing the callback.
-    void insertOption(size_t index, const std::string& optionText, VoidFunc callbackFunc,
+    void insertOption(size_t index, const std::string& optionText, const std::function<void ()>& callbackFunc,
         bool enableNewPage = true, bool waitKeyAfterEnd = true)
     {
         options_.insert(options_.begin() + index, Option { enableNewPage, waitKeyAfterEnd, optionText, callbackFunc });
-        if (enableAutoAdjustOptionTextWidth_ && optionText.size() + reserveSpace > optionTextWidth_)
-            optionTextWidth_ = optionText.size() + reserveSpace;
-    }
-
-    /// @overload
-    /// @brief Insert a new option at the specified position.
-    /// @param index            The position to insert the option (0-based).
-    /// @param optionText       The text displayed for the option.
-    /// @param callbackFunc     The callback function with an argument.
-    /// @param arg              The argument to pass to the callback function.
-    /// @param enableNewPage    Whether to clear the console before executing the callback.
-    void insertOption(size_t index, const std::string& optionText, ArgFunc callbackFunc, Arg arg,
-          bool enableNewPage = true, bool waitKeyAfterEnd = true)
-    {
-        options_.insert(options_.begin() + index,
-            Option { enableNewPage, waitKeyAfterEnd, optionText, CallbackFunc(callbackFunc, arg) });
-
         if (enableAutoAdjustOptionTextWidth_ && optionText.size() + reserveSpace > optionTextWidth_)
             optionTextWidth_ = optionText.size() + reserveSpace;
     }
@@ -202,27 +168,9 @@ public:
     }
 
     /// @brief Set the callback function for the specified option.
-    void setOptionCallback(size_t index, VoidFunc callbackFunc)
+    void setOptionCallback(size_t index, const std::function<void ()>& callbackFunc)
     {
-        options_[index].callback = CallbackFunc(callbackFunc);
-    }
-
-    /// @overload
-    /// @brief Set the callback function and argument for the specified option.
-    void setOptionCallback(size_t index, ArgFunc callbackFunc, Arg arg)
-    {
-        options_[index].callback = CallbackFunc(callbackFunc, arg);
-    }
-
-    /// @brief Set the argument for the specified option's callback function.
-    /// @attention Only available for options with argument-based callbacks.
-    /// @throw Throws std::runtime_error if the option does not have an argument-based callback.
-    void setOptionCallbackArg(size_t index, Arg arg)
-    {
-        if (options_[index].callback.isArgFunc)
-            options_[index].callback.argFuncArg.second = arg;
-        else
-            throw std::runtime_error("Specified option has no callback function with argument.");
+        options_[index].callback = callbackFunc;
     }
 
     /// @brief Enable or disable index display for each option.
@@ -333,13 +281,13 @@ public:
 
         selectOption(index);
 
-        if (!options_[index].callback.isValid())
+        if (!options_[index].callback)
             return;
 
         if (options_[index].enableNewPage)
             clearConsole();
 
-        options_[selectedOption_].callback.execute();
+        options_[selectedOption_].callback();
         if (options_[selectedOption_].waitKeyAfterEnd)
             getkey();
 
@@ -439,62 +387,12 @@ public:
     void endReceiveInput() { shouldEndReceiveInput_ = true; }
 
 private:
-    struct CallbackFunc
-    {
-        CallbackFunc(VoidFunc voidFunc) : isArgFunc(false), voidFunc(voidFunc) {}
-
-        CallbackFunc(ArgFunc argFunc, Arg arg) : isArgFunc(true), argFuncArg(argFunc, arg) {}
-
-        CallbackFunc(const CallbackFunc& other) : isArgFunc(other.isArgFunc)
-        {
-            if (isArgFunc)
-                argFuncArg = other.argFuncArg;
-            else
-                voidFunc = other.voidFunc;
-        }
-
-        CallbackFunc& operator=(const CallbackFunc& other)
-        {
-            isArgFunc = other.isArgFunc;
-
-            if (isArgFunc)
-                argFuncArg = other.argFuncArg;
-            else
-                voidFunc = other.voidFunc;
-
-            return *this;
-        }
-
-        bool isValid() const
-        {
-            if (isArgFunc)
-                return argFuncArg.first;
-            else
-                return voidFunc;
-        }
-
-        void execute() const
-        {
-            if (isArgFunc)
-                argFuncArg.first(argFuncArg.second);
-            else
-                voidFunc();
-        }
-
-        bool isArgFunc;
-        union
-        {
-            VoidFunc voidFunc;
-            std::pair<ArgFunc, Arg> argFuncArg;
-        };
-    };
-
     struct Option
     {
         bool enableNewPage;
         bool waitKeyAfterEnd;
         std::string text;
-        CallbackFunc callback;
+        std::function<void ()> callback;
     };
 
     static std::string cutoffString_(const std::string& str, size_t width)

@@ -8,14 +8,20 @@ int main(int argc, char* argv[])
 
     menu.setOptionTextAlignment(2);
 
-    menu.addOption("Lineage cheating", lineageCheating, true, false);
+    bool needRefresh = false;
+    menu.addOption("Lineage cheating", [&needRefresh]()
+    {
+        do
+        {
+            needRefresh = false;
+            lineageCheating(needRefresh);
+        } while (needRefresh);
+    }, true, false);
     menu.addOption("Select image point", selectImagePointTool);
     menu.addOption("Test HID mouse move", testHidMouseMove);
     menu.addOption("Test HID mouse button", testHidMouseButton);
     menu.addOption("Test HID keyboard", testHidKeyboard);
-    menu.addOption("Exit", [](void* menu){
-        static_cast<CommandLineMenu*>(menu)->endReceiveInput();
-    }, &menu, false, false);
+    menu.addOption("Exit", [&menu](){ menu.endReceiveInput(); }, false, false);
 
     menu.show();
     menu.startReceiveInput();

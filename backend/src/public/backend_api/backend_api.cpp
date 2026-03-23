@@ -83,6 +83,7 @@ void CheatingWorker::work()
                     videoFrame.p_data, videoFrame.line_stride_in_bytes).clone();
                 NDIlib_framesync_free_video(frameSync, &videoFrame);
                 cv::cvtColor(frame, frame, cv::COLOR_BGRA2BGR);
+                printf("Get new frame\n");
                 return frame;
             }
             NDIlib_framesync_free_video(frameSync, &videoFrame);
@@ -194,6 +195,7 @@ void CheatingWorker::work()
 
                 if (isMonsterName(box.text))
                 {
+                    printf("Is Monster name: %s\n", box.text.c_str());
                     attackTarget = box.text;
 
                     // Press shift
@@ -203,7 +205,6 @@ void CheatingWorker::work()
 
                     // Monitor arrow count to detect monster death.
                     int lastArrowNum = -1;
-                    int arrowNum = -1;
                     auto lastArrowChangeTime = steady_clock::now();
 
                     while (!shouldClose_.load())
@@ -222,6 +223,7 @@ void CheatingWorker::work()
 
                         // Get current arrow count.
                         arrowNum = identifyNum(gameFrameUtils.getArrowAreaFrame(frame));
+                        showDebugFrame(frame);
 
                         if (arrowNum != lastArrowNum)
                         {
@@ -237,8 +239,6 @@ void CheatingWorker::work()
                             if (elapsed >= cheatingCfg.arrowUnchangedTimeThreshold)
                                 break;
                         }
-
-                        showDebugFrame(frame);;
                     }
 
                     // Release left mouse button.
