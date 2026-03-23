@@ -61,6 +61,7 @@ void CheatingWorker::work()
     Progress hp;
     Progress mp;
     int arrowNum = -1;
+    std::string attackTarget;
 
     bool isWindowCreated = false;
     const CheatingConfig& cheatingCfg = cheatingConfig_;
@@ -76,6 +77,7 @@ void CheatingWorker::work()
             NDIlib_framesync_capture_video(frameSync, &videoFrame);
             if (videoFrame.p_data)
             {
+                // Assert video frame FourCC is BGRA.
                 cv::Mat frame = cv::Mat(
                     videoFrame.yres, videoFrame.xres, CV_8UC4,
                     videoFrame.p_data, videoFrame.line_stride_in_bytes).clone();
@@ -88,27 +90,28 @@ void CheatingWorker::work()
         return cv::Mat();
     };
 
-    auto showDebugFrame = [&](const cv::Mat& displayFrame, const std::string& attackTarget = std::string())
+    auto showDebugFrame = [&](cv::Mat displayFrame)
     {
         if (!debugCfg.showWindow || displayFrame.empty())
             return;
 
         isWindowCreated = true;
-        cv::Mat showFrame = displayFrame.clone();
-
         if (debugCfg.showDebugInfo)
         {
-            cv::putText(showFrame, "HP: " + hp.toString(),
-                cv::Point(5, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
-            cv::putText(showFrame, "MP: " + mp.toString(),
-                cv::Point(5, 40), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
-            cv::putText(showFrame, "Arrow Num: " + std::to_string(arrowNum),
-                cv::Point(5, 60), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
-            cv::putText(showFrame, "Attack Target: " + attackTarget.empty() ? "-" : attackTarget,
-                cv::Point(5, 80), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
+            cv::putText(displayFrame, "HP: " + hp.toString(),
+                cv::Point(5, 60), cv::FONT_HERSHEY_SIMPLEX, 2.0, cv::Scalar(255, 0, 0), 3);
+            cv::putText(displayFrame, "MP: " + mp.toString(),
+                cv::Point(5, 120), cv::FONT_HERSHEY_SIMPLEX, 2.0, cv::Scalar(255, 0, 0), 3);
+            cv::putText(displayFrame, "Arrow Num: " + std::to_string(arrowNum),
+                cv::Point(5, 180), cv::FONT_HERSHEY_SIMPLEX, 2.0, cv::Scalar(255, 0, 0), 3);
+            cv::putText(displayFrame, "Attack Target: " + (attackTarget.empty() ? "-" : attackTarget),
+                cv::Point(5, 240), cv::FONT_HERSHEY_SIMPLEX, 2.0, cv::Scalar(255, 0, 0), 3);
         }
 
-        cv::imshow(debugCfg.windowName, showFrame);
+        if (debugCfg.windowMaxX <= 0 || debugCfg.windowMaxY <= 0)
+            cv::imshow(debugCfg.windowName, displayFrame);
+        else
+            cv::imshow(debugCfg.windowName, limitImageSize(displayFrame, debugCfg.windowMaxX, debugCfg.windowMaxY));
         cv::waitKey(1);
     };
 
@@ -118,6 +121,8 @@ void CheatingWorker::work()
 
     while (!shouldClose_.load())
     {
+        attackTarget.clear();
+
         cv::Mat frame = getNewValidFrame();
         prevFrame = currFrame.clone();
         currFrame = gameFrameUtils.getMainGameAreaFrame(frame);
@@ -125,7 +130,6 @@ void CheatingWorker::work()
         // Identify HP and MP.
         hp = identifyHpMp(gameFrameUtils.getHpAreaFrame(frame));
         mp = identifyHpMp(gameFrameUtils.getMpAreaFrame(frame));
-        printf("HP: %s\n", hp.toString().c_str(), mp.toString().c_str());
 
         showDebugFrame(frame);
 
@@ -138,14 +142,19 @@ void CheatingWorker::work()
         if (!diffRects.empty())
             diffRects.resize(5);
 
-        bool gotTarget = false;
-        while (!diffRects.empty() && !gotTarget)
+        if (debugModeConfig_.showWindow && debugModeConfig_.showDiffRect)
         {
-            printf("Has diff rect\n");
+            cv::Mat drawedFrame = frame.clone();
+            for (const auto& rect : diffRects)
+                cv::rectangle(drawedFrame, rect, cv::Scalar(0, 0, 255), 3);
+            showDebugFrame(drawedFrame);
+        }
+
+        bool gotTarget = false;
+        while (!diffRects.empty() && !gotTarget && !shouldClose_.load())
+        {
             // Map the cropped image back to the original image coordinate system.
             auto textRect = gameFrameUtils.mapMainGameAreaRectToSource(frame, diffRects.back());
-            if (debugModeConfig_.showWindow && debugModeConfig_.showDiffRect)
-                cv::rectangle(frame, textRect, cv::Scalar(0, 255, 0));
 
             // Move the mouse to the place where the frame changes.
             cv::Point centerPt = (textRect.tl() + textRect.br()) / 2;
@@ -162,16 +171,28 @@ void CheatingWorker::work()
             textRect &= cv::Rect(0, 0, frame.cols, frame.rows);
 
             frame = getNewValidFrame();
+            showDebugFrame(frame);
 
             auto& ocrLite = getOcrLiteInstance();
-            auto result = ocrLite.detect(frame(textRect), 50, 1024, 0.6, 0.3, 1.5, false, false);
+            auto result = ocrLite.detect(frame(textRect), 50, 1024, 0.3, 0.5, 1.6, false, false);
 
             for (const auto& box : result.textBlocks)
             {
                 printf("Detext Text: %s\n", box.text.c_str());
+                if (debugCfg.showWindow && debugCfg.showTextRectAndText)
+                {
+                    cv::Rect rect = cv::boundingRect(box.boxPoint);
+                    rect = cv::Rect(textRect.x + rect.x, textRect.y + rect.y, rect.width, rect.height);
+
+                    cv::Mat drawedFrame = frame.clone();
+                    cv::rectangle(drawedFrame, rect, cv::Scalar(0, 255, 0), 3);
+                    showDebugFrame(drawedFrame);
+                }
+
                 if (isMonsterName(box.text))
                 {
-                    printf("Target Name: %s\n", box.text.c_str());
+                    attackTarget = box.text;
+
                     // Press shift
                     hid::pressKey(hid_, VK_LSHIFT);
                     // Press left mouse button (hold down) to start attacking.
@@ -191,7 +212,6 @@ void CheatingWorker::work()
                         // Identify HP and MP.
                         hp = identifyHpMp(gameFrameUtils.getHpAreaFrame(frame));
                         mp = identifyHpMp(gameFrameUtils.getMpAreaFrame(frame));
-                        showDebugFrame(frame);
 
                         // If the HP is low, press F5 to use potion.
                         if (hp.isValid() && hp.getPercentage() < cheatingCfg.hpThresholdPercent)

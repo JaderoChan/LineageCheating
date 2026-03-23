@@ -4,8 +4,11 @@
 
 Progress identifyHpMp(const cv::Mat& img)
 {
-    auto text = getImageText(img);
-    if (text.empty())
-        return Progress();
-    return Progress::fromString(text);
+    if (!img.empty())
+    {
+        auto text = getImageText(img);
+        if (!text.empty())
+            return Progress::fromString(text);
+    }
+    return Progress();
 }

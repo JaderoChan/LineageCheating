@@ -3,6 +3,28 @@
 #include <cassert>
 #include <cmath>
 
+cv::Mat limitImageSize(const cv::Mat& src, int maxX, int maxY)
+{
+    assert(maxX > 0 && maxY > 0);
+
+    if ((src.cols <= maxX && src.rows <= maxY) || (src.cols == 0 || src.rows == 0))
+        return src.clone();
+
+    double xRatio = static_cast<double>(maxX) / src.cols;
+    double yRatio = static_cast<double>(maxY) / src.rows;
+    double ratio = std::min(xRatio, yRatio);
+
+    int newCols = src.cols * ratio;
+    int newRows = src.rows * ratio;
+    if (newCols <= 0 || newRows <= 0)
+        throw std::runtime_error("Failed to limit image size");
+
+    cv::Mat limitedImg;
+    cv::resize(src, limitedImg, cv::Size(newCols, newRows));
+
+    return limitedImg;
+}
+
 cv::Mat cropImageProportioned(const cv::Mat& src, const FrameProportionRect& rect)
 {
     if (src.empty())
@@ -23,8 +45,11 @@ cv::Mat cropImageProportioned(const cv::Mat& src, const FrameProportionRect& rec
 
 std::vector<cv::Rect> getImageDiffs(const cv::Mat& a, const cv::Mat& b, double minimumArea)
 {
-    static cv::Mat aGray;
-    static cv::Mat bGray;
+    if (a.empty() || b.empty())
+        return std::vector<cv::Rect>();
+
+    cv::Mat aGray;
+    cv::Mat bGray;
 
     cv::cvtColor(a, aGray, cv::COLOR_BGR2GRAY);
     cv::GaussianBlur(aGray, aGray, cv::Size(7, 7), 0);
@@ -32,10 +57,10 @@ std::vector<cv::Rect> getImageDiffs(const cv::Mat& a, const cv::Mat& b, double m
     cv::cvtColor(b, bGray, cv::COLOR_BGR2GRAY);
     cv::GaussianBlur(bGray, bGray, cv::Size(7, 7), 0);
 
-    static cv::Mat diff;
+    cv::Mat diff;
     cv::absdiff(aGray, bGray, diff);
 
-    static cv::Mat thresh;
+    cv::Mat thresh;
     cv::threshold(diff, thresh, 25, 255, cv::THRESH_BINARY);
 
     cv::dilate(thresh, thresh, cv::Mat(), cv::Point(-1, -1), 2);

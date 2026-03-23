@@ -7,9 +7,9 @@
 struct CheatingConfig
 {
     FrameProportionRect mainRect = {
-        0.109204,
+        0.139204,
         0.0,
-        0.806563,
+        0.790563,
         0.735465
     };
     FrameProportionRect playerRect = {
@@ -49,10 +49,12 @@ struct CheatingConfig
 
 struct DebugModeConfig
 {
-    bool showWindow = false;
-    bool showDiffRect = true;
-    bool showTextRect = true;
-    bool showDebugInfo = true;
+    bool showWindow             = false;
+    bool showDiffRect           = true;
+    bool showTextRectAndText    = true;
+    bool showDebugInfo          = true;
+    int windowMaxX              = 1440;
+    int windowMaxY              = 1440;
     std::string windowName;
 };
 

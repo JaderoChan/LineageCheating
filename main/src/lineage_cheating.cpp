@@ -6,6 +6,8 @@
 #include "command_line_menu.hpp"
 #include "format_string.hpp"
 
+#define DISABLE_HID
+
 struct UserData
 {
     // In
@@ -59,6 +61,7 @@ void setupCheatingWorker(void* userData)
     NDIlib_recv_connect(recv, data->ndiSources + data->index);
     data->recv = recv;
 
+#ifndef DISABLE_HID
     // Input the HID's VID and PID.
     int pid = 0, vid = 0;
     do
@@ -118,6 +121,9 @@ void setupCheatingWorker(void* userData)
         failHandler(recv);
         return;
     }
+#else
+    hid::HID hid = nullptr;
+#endif // !DISABLE_HID
 
     // Start Cheating Worker.
     auto* worker = new CheatingWorker(recv, hid, data->cheatingCfg, data->debugModeCfg);
@@ -151,11 +157,16 @@ void cleanupCheatingWorker(void* userData)
 
     printf("Wait HID be closed and disconnect NDI source...\n");
 
-    hid::releaseAllKey(data->hid);
-    hid::relaseAllMouseButton(data->hid);
+#ifndef DISABLE_HID
+    if (data->hid)
+    {
+        hid::releaseAllKey(data->hid);
+        hid::relaseAllMouseButton(data->hid);
 
-    // Close HID device.
-    hid::closeHID(data->hid);
+        // Close HID device.
+        hid::closeHID(data->hid);
+    }
+#endif // !DISABLE_HID
 
     // Destroy NDI receiver.
     if (data->recv)

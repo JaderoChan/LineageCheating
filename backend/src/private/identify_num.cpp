@@ -4,6 +4,9 @@
 
 int identifyNum(const cv::Mat& img)
 {
+    if (img.empty())
+        return -1;
+
     auto text = getImageText(img);
     if (text.empty())
         return -1;
