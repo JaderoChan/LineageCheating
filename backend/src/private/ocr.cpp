@@ -40,7 +40,7 @@ std::string getImageText(const cv::Mat& img)
     try
     {
         auto& ocrLite = getOcrLiteInstance();
-        auto result = ocrLite.detect(img, 50, 1024, 0.6, 0.3, 1.5, false, false);
+        auto result = ocrLite.detect(img, 50, 1024, 0.35, 0.3, 1.6, false, false);
         return result.strRes;
     }
     catch (const std::exception& e)

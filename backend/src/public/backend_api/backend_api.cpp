@@ -140,13 +140,16 @@ void CheatingWorker::work()
         // The difference area between two frames.
         std::vector<cv::Rect> diffRects = getImageDiffs(prevFrame, currFrame);
         if (!diffRects.empty())
-            diffRects.resize(5);
+            diffRects.resize(10);
 
         if (debugModeConfig_.showWindow && debugModeConfig_.showDiffRect)
         {
             cv::Mat drawedFrame = frame.clone();
             for (const auto& rect : diffRects)
-                cv::rectangle(drawedFrame, rect, cv::Scalar(0, 0, 255), 3);
+            {
+                auto srcRect = gameFrameUtils.mapMainGameAreaRectToSource(frame, rect);
+                cv::rectangle(drawedFrame, srcRect, cv::Scalar(0, 0, 255), 3);
+            }
             showDebugFrame(drawedFrame);
         }
 
@@ -154,35 +157,35 @@ void CheatingWorker::work()
         while (!diffRects.empty() && !gotTarget && !shouldClose_.load())
         {
             // Map the cropped image back to the original image coordinate system.
-            auto textRect = gameFrameUtils.mapMainGameAreaRectToSource(frame, diffRects.back());
+            auto diffRect = gameFrameUtils.mapMainGameAreaRectToSource(frame, diffRects.back());
 
             // Move the mouse to the place where the frame changes.
-            cv::Point centerPt = (textRect.tl() + textRect.br()) / 2;
+            cv::Point centerPt = (diffRect.tl() + diffRect.br()) / 2;
             hid::moveMouseTo(hid_, centerPt.x, centerPt.y);
             std::this_thread::sleep_for(microseconds(cheatingCfg.sleepAfterMove));
 
             // Expand text recognition range.
-            textRect.x -= cheatingCfg.textRegionExpansionX;
-            textRect.y -= cheatingCfg.textRegionExpansionY;
-            textRect.width += cheatingCfg.textRegionExpansionX * 2;
-            textRect.height += cheatingCfg.textRegionExpansionY * 2;
+            diffRect.x -= cheatingCfg.textRegionExpansionX;
+            diffRect.y -= cheatingCfg.textRegionExpansionY;
+            diffRect.width += cheatingCfg.textRegionExpansionX * 2;
+            diffRect.height += cheatingCfg.textRegionExpansionY * 2;
 
             // Clamp the expanded rect to frame boundaries.
-            textRect &= cv::Rect(0, 0, frame.cols, frame.rows);
+            diffRect &= cv::Rect(0, 0, frame.cols, frame.rows);
 
             frame = getNewValidFrame();
             showDebugFrame(frame);
 
             auto& ocrLite = getOcrLiteInstance();
-            auto result = ocrLite.detect(frame(textRect), 50, 1024, 0.3, 0.5, 1.6, false, false);
+            auto result = ocrLite.detect(frame(diffRect), 50, 1024, 0.35, 0.3, 1.6, false, false);
 
             for (const auto& box : result.textBlocks)
             {
                 printf("Detext Text: %s\n", box.text.c_str());
-                if (debugCfg.showWindow && debugCfg.showTextRectAndText)
+                if (debugCfg.showWindow && debugCfg.showTextRect)
                 {
                     cv::Rect rect = cv::boundingRect(box.boxPoint);
-                    rect = cv::Rect(textRect.x + rect.x, textRect.y + rect.y, rect.width, rect.height);
+                    rect = cv::Rect(diffRect.x + rect.x, diffRect.y + rect.y, rect.width, rect.height);
 
                     cv::Mat drawedFrame = frame.clone();
                     cv::rectangle(drawedFrame, rect, cv::Scalar(0, 255, 0), 3);

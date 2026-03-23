@@ -49,12 +49,12 @@ struct CheatingConfig
 
 struct DebugModeConfig
 {
-    bool showWindow             = false;
-    bool showDiffRect           = true;
-    bool showTextRectAndText    = true;
-    bool showDebugInfo          = true;
-    int windowMaxX              = 1440;
-    int windowMaxY              = 1440;
+    bool showWindow         = false;
+    bool showDiffRect       = true;
+    bool showTextRect       = true;
+    bool showDebugInfo      = true;
+    int windowMaxX          = 1440;
+    int windowMaxY          = 1440;
     std::string windowName;
 };
 

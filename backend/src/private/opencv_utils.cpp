@@ -61,7 +61,7 @@ std::vector<cv::Rect> getImageDiffs(const cv::Mat& a, const cv::Mat& b, double m
     cv::absdiff(aGray, bGray, diff);
 
     cv::Mat thresh;
-    cv::threshold(diff, thresh, 25, 255, cv::THRESH_BINARY);
+    cv::threshold(diff, thresh, 40, 255, cv::THRESH_BINARY);
 
     cv::dilate(thresh, thresh, cv::Mat(), cv::Point(-1, -1), 2);
 

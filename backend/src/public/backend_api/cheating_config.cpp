@@ -56,7 +56,7 @@ DebugModeConfig loadDebugModeConfigFromJson(const std::string& json)
     {
         config.showWindow = j.at("showWindow");
         config.showDiffRect = j.at("showDiffRect");
-        config.showTextRectAndText = j.at("showTextRectAndText");
+        config.showTextRect = j.at("showTextRect");
         config.showDebugInfo = j.at("showDebugInfo");
         config.windowName = j.at("windowName");
     }
