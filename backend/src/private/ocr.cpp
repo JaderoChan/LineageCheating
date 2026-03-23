@@ -1,41 +1,51 @@
 #include "ocr.hpp"
 
-cv::Mat preprocessImageForOCR(const cv::Mat& img)
+class OcrLiteInstanceFactory
 {
-    cv::Mat processed;
+public:
+    OcrLiteInstanceFactory()
+    {
+        bool success = instance_.initModels(
+            "./models/ch_PP-OCRv3_det_infer.onnx",
+            "./models/ch_ppocr_mobile_v2.0_cls_infer.onnx",
+            "./models/ch_PP-OCRv3_rec_infer.onnx",
+            "./models/ppocr_keys_v1.txt");
+        if (!success)
+            throw std::runtime_error("Failed to init OCR model.\n");
+        instance_.initLogger(false, false, false);
+        instance_.setNumThread(4);
+        instance_.setGpuIndex(-1);
+    }
 
-    if (img.channels() != 1)
-        cv::cvtColor(img, processed, cv::COLOR_BGR2GRAY);
-    else
-        processed = img.clone();
+    OcrLite& getInstance()
+    {
+        return instance_;
+    }
 
-    double scale = 2.0;
-    cv::resize(processed, processed, cv::Size(), scale, scale, cv::INTER_CUBIC);
+private:
+    OcrLiteInstanceFactory(OcrLiteInstanceFactory&) = delete;
+    OcrLiteInstanceFactory& operator=(const OcrLiteInstanceFactory&) = delete;
 
-    cv::fastNlMeansDenoising(processed, processed, 10, 7, 21);
+    OcrLite instance_;
+};
 
-    cv::adaptiveThreshold(
-        processed, processed, 255,
-        cv::ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv::THRESH_BINARY, 11, 2
-    );
-
-    static cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(2, 2));
-    cv::morphologyEx(processed, processed, cv::MORPH_CLOSE, kernel);
-
-    return processed;
+OcrLite& getOcrLiteInstance()
+{
+    static OcrLiteInstanceFactory instance;
+    return instance.getInstance();
 }
 
 std::string getImageText(const cv::Mat& img)
 {
-    auto& tess = TessAPI::getInstance()();
-    std::string res;
-
-    tess.SetImage(img.data, img.cols, img.rows, 3, img.step);
-    char* text = tess.GetUTF8Text();
-    if (text)
-        res = text;
-    delete[] text;
-
-    return res;
+    try
+    {
+        auto& ocrLite = getOcrLiteInstance();
+        auto result = ocrLite.detect(img, 50, 1024, 0.6, 0.3, 1.5, false, false);
+        return result.strRes;
+    }
+    catch (const std::exception& e)
+    {
+        printf("Failed to detect text: %s", e.what());
+        return std::string();
+    }
 }

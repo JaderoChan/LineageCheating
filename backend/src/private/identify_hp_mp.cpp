@@ -4,7 +4,7 @@
 
 Progress identifyHpMp(const cv::Mat& img)
 {
-    auto text = getImageText(preprocessImageForOCR(img));
+    auto text = getImageText(img);
     if (text.empty())
         return Progress();
     return Progress::fromString(text);

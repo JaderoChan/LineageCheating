@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.17)
-
 project(LineageCheatingMain VERSION 0.0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -41,4 +39,11 @@ add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${RUNTIME_DEPENDENCIES} $<TARGET_FILE_DIR:${PROJECT_NAME}>
+)
+
+# 复制模型文件至目标文件夹下
+add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+    ${MODELS_DIR} $<TARGET_FILE_DIR:${PROJECT_NAME}>/models
 )

@@ -2,8 +2,8 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "tess_api.hpp"
+#include <OcrLite.h>
 
-cv::Mat preprocessImageForOCR(const cv::Mat& img);
+OcrLite& getOcrLiteInstance();
 
 std::string getImageText(const cv::Mat& img);

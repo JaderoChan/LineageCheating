@@ -7,34 +7,34 @@
 struct CheatingConfig
 {
     FrameProportionRect mainRect = {
-        0.179204,
+        0.109204,
         0.0,
-        0.867257,
-        0.728863
+        0.806563,
+        0.735465
     };
     FrameProportionRect playerRect = {
-        0.471238,
-        0.291545,
-        0.533186,
-        0.408163
+        0.478906,
+        0.303779,
+        0.521094,
+        0.415698
     };
     FrameProportionRect hpRect = {
-        0.341814,
-        0.787172,
-        0.423673,
-        0.804665
+        0.397344,
+        0.793605,
+        0.444531,
+        0.812500
     };
     FrameProportionRect mpRect = {
-        0.538292,
-        0.787172,
-        0.605044,
-        0.804665
+        0.542578,
+        0.793605,
+        0.575712,
+        0.812500
     };
     FrameProportionRect arrowRect = {
-        0.1,
-        0.2,
-        0.2,
-        0.3
+        0.837560,
+        0.915972,
+        0.866036,
+        0.936711
     };
 
     int textRegionExpansionX = 50;
@@ -42,7 +42,7 @@ struct CheatingConfig
 
     // unit in millisecond
     int sleepAfterMove = 20;
-    int arrowUnchangedTimeThreshold = 50;
+    int arrowUnchangedTimeThreshold = 800;
 
     double hpThresholdPercent = 0.3;
 };
@@ -52,7 +52,7 @@ struct DebugModeConfig
     bool showWindow = false;
     bool showDiffRect = true;
     bool showTextRect = true;
-    bool showHpMp = true;
+    bool showDebugInfo = true;
     std::string windowName;
 };
 

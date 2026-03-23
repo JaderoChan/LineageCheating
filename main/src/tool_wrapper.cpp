@@ -27,14 +27,40 @@ void selectImagePointTool()
 
 void testHidMouseMove()
 {
-    int hidNo = 0;
-    std::cout << "Please input the HID number:\n";
-    std::cin >> hidNo;
+    int vid = 0, pid = 0;
+    std::cout << "Please input the HID VID and PID:\n";
+    std::cin >> vid >> pid;
 
-    auto hid = hid::openHID(0x0001, hidNo);
+    auto hid = hid::openHID(vid, pid);
     if (!hid || reinterpret_cast<intptr_t>(hid) == -1)
     {
-        std::cout << "Failed to open the HID " << hidNo << std::endl;
+        std::cout << "Failed to open the HID" << std::endl;
+        return;
+    }
+
+    printf("Please input the HID device resolution (x * y).\n");
+    int x = 0, y = 0;
+    do
+    {
+        if (scanf("%d %d", &x, &y) != 2)
+        {
+            while (getchar() != '\n');
+            printf("Please input valid resolution. (Press ESC key to stop and return or press other key to retry)\n");
+            if (CommandLineMenu::getkey() == 0x1B)
+            {
+                printf("User cancel configure.\n");
+                return;
+            }
+        }
+        else
+        {
+            break;
+        }
+    } while (true);
+    if (hid::setResolution(hid, x, y) != 0)
+    {
+        printf("Failed to set resolution.\n");
+        hid::closeHID(hid);
         return;
     }
 
@@ -51,14 +77,14 @@ void testHidMouseMove()
 
 void testHidMouseButton()
 {
-    int hidNo = 0;
-    std::cout << "Please input the HID number:\n";
-    std::cin >> hidNo;
+    int vid = 0, pid = 0;
+    std::cout << "Please input the HID VID and PID:\n";
+    std::cin >> vid >> pid;
 
-    auto hid = hid::openHID(0x0001, hidNo);
+    auto hid = hid::openHID(vid, pid);
     if (!hid || reinterpret_cast<intptr_t>(hid) == -1)
     {
-        std::cout << "Failed to open the HID " << hidNo << std::endl;
+        std::cout << "Failed to open the HID" << std::endl;
         return;
     }
 
@@ -75,14 +101,14 @@ void testHidMouseButton()
 
 void testHidKeyboard()
 {
-    int hidNo = 0;
-    std::cout << "Please input the HID number:\n";
-    std::cin >> hidNo;
+    int vid = 0, pid = 0;
+    std::cout << "Please input the HID VID and PID:\n";
+    std::cin >> vid >> pid;
 
-    auto hid = hid::openHID(0x0001, hidNo);
+    auto hid = hid::openHID(vid, pid);
     if (!hid || reinterpret_cast<intptr_t>(hid) == -1)
     {
-        std::cout << "Failed to open the HID " << hidNo << std::endl;
+        std::cout << "Failed to open the HID" << std::endl;
         return;
     }
 

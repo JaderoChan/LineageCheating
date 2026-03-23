@@ -39,6 +39,8 @@ int relaseAllMouseButton(HID hid);
 /// @return 0: Release status. 1: Pressed status. -1: Failed to get status.
 int getMouseButtonState(HID hid, int button);
 
+int setResolution(HID hid, int x, int y);
+
 int moveMouseTo(HID hid, int x, int y);
 
 int relativeMoveMouse(HID hid, int dx, int dy);

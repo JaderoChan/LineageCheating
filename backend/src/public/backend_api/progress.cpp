@@ -5,13 +5,15 @@ Progress Progress::fromString(const std::string& text)
     std::string current, total;
 
     bool isCurrentPart = true;
-    for (const auto& ch : text)
+    for (char ch : text)
     {
         std::string& handledStr = isCurrentPart ? current : total;
-        if (isdigit(ch))
+        if (std::isdigit(ch))
             handledStr += ch;
         else if (ch == '/' && isCurrentPart)
             isCurrentPart = false;
+        else if (std::isblank(ch))
+            continue;
         else if (!isCurrentPart)
             break;
     }

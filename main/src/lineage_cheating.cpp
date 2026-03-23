@@ -1,5 +1,6 @@
 #include "lineage_cheating.hpp"
 
+#include <opencv2/opencv.hpp>
 #include <Processing.NDI.Lib.h>
 
 #include "command_line_menu.hpp"
@@ -82,12 +83,41 @@ void setupCheatingWorker(void* userData)
 
     // Open the HID by given PID and VID.
     auto hid = hid::openHID(vid, pid);
-    // if (!hid || reinterpret_cast<intptr_t>(hid) == -1)
-    // {
-    //     printf("Failed to open the HID (vid: %d, pid: %d).\n", vid, pid);
-    //     failHandler(recv);
-    //     return;
-    // }
+    if (!hid || reinterpret_cast<intptr_t>(hid) == -1)
+    {
+        printf("Failed to open the HID (vid: %d, pid: %d).\n", vid, pid);
+        failHandler(recv);
+        return;
+    }
+
+    printf("Please input the HID device resolution (x * y).\n");
+    int x = 0, y = 0;
+    do
+    {
+        if (scanf("%d %d", &x, &y) != 2)
+        {
+            while (getchar() != '\n');
+            printf("Please input valid resolution. (Press ESC key to stop and return or press other key to retry)\n");
+            if (CommandLineMenu::getkey() == 0x1B)
+            {
+                printf("User cancel configure.\n");
+                failHandler(recv);
+                return;
+            }
+        }
+        else
+        {
+            break;
+        }
+    } while (true);
+    if (hid::setResolution(hid, x, y) != 0)
+    {
+        printf("Failed to set resolution.\n");
+        hid::closeHID(hid);
+        hid = nullptr;
+        failHandler(recv);
+        return;
+    }
 
     // Start Cheating Worker.
     auto* worker = new CheatingWorker(recv, hid, data->cheatingCfg, data->debugModeCfg);
@@ -119,9 +149,13 @@ void cleanupCheatingWorker(void* userData)
         data->worker = nullptr;
     }
 
+    printf("Wait HID be closed and disconnect NDI source...\n");
+
+    hid::releaseAllKey(data->hid);
+    hid::relaseAllMouseButton(data->hid);
+
     // Close HID device.
-    // TODO
-    // hid::closeHID(data->hid);
+    hid::closeHID(data->hid);
 
     // Destroy NDI receiver.
     if (data->recv)
@@ -134,6 +168,8 @@ void cleanupCheatingWorker(void* userData)
     data->configureSuccess = false;
     data->menu->setOptionText(data->index, data->sourceName + " (Not Configured)");
     data->menu->setOptionCallback(data->index, setupCheatingWorker, userData);
+
+    printf("Clean up Cheating Worker successfully.\n");
 }
 
 void lineageCheating()
@@ -224,4 +260,6 @@ void lineageCheating()
 
     NDIlib_find_destroy(ndiFinder);
     NDIlib_destroy();
+
+    cv::destroyAllWindows();
 }

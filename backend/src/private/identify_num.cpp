@@ -4,16 +4,17 @@
 
 int identifyNum(const cv::Mat& img)
 {
-    auto text = getImageText(preprocessImageForOCR(img));
+    auto text = getImageText(img);
     if (text.empty())
         return -1;
 
-    try
+    std::string processed;
+    for (char ch : text)
     {
-        return std::stoi(text);
+        if (isdigit(ch))
+            processed += ch;
     }
-    catch (...)
-    {
-        return -1;
-    }
+
+    try { return std::stoi(processed); }
+    catch (...) { return -1; }
 }

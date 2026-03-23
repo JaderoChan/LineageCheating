@@ -88,9 +88,14 @@ int getMouseButtonState(HID hid, int button)
     return M_MouseKeyState(hid, button);
 }
 
+int setResolution(HID hid, int x, int y)
+{
+    return M_ResolutionUsed(hid, x, y);;
+}
+
 int moveMouseTo(HID hid, int x, int y)
 {
-    return M_MoveTo(hid, x, y);
+    return M_MoveTo3(hid, x, y);
 }
 
 int relativeMoveMouse(HID hid, int dx, int dy)

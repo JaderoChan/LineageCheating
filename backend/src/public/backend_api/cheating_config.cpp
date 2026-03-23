@@ -57,7 +57,7 @@ DebugModeConfig loadDebugModeConfigFromJson(const std::string& json)
         config.showWindow = j.at("showWindow");
         config.showDiffRect = j.at("showDiffRect");
         config.showTextRect = j.at("showTextRect");
-        config.showHpMp = j.at("showHpMp");
+        config.showDebugInfo = j.at("showDebugInfo");
         config.windowName = j.at("windowName");
     }
     catch (const std::exception& e)
