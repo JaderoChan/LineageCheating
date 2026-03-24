@@ -90,11 +90,11 @@ void CheatingWorker::work()
                 auto interval = high_resolution_clock::now() - lastGetFrameTime;
                 if (interval < frameTimeInterval)
                     std::this_thread::sleep_for(frameTimeInterval - interval);
-
+                lastGetFrameTime =  high_resolution_clock::now();
                 return frame;
             }
             NDIlib_framesync_free_video(frameSync, &videoFrame);
-            std::this_thread::sleep_for(milliseconds(2));
+            std::this_thread::sleep_for(milliseconds(1));
         }
         return cv::Mat();
     };
