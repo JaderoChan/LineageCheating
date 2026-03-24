@@ -250,7 +250,7 @@ void CheatingWorker::work()
             int col = majorFrame.cols * cheatingCfg.hpFlagPointX;
             auto majorColor = majorFrame.at<cv::Vec3b>(row, col);
             auto similarity = computeColorSimilarity(majorColor, hpThresholdColor);
-            if (similarity >= 0.9)
+            if (similarity >= 0.9 && high_resolution_clock::now() - lastMajorHeartTime >= heartTimeInterval)
             {
                 lastMajorHeartTime = high_resolution_clock::now();
                 hid::clickKey(hid_, VK_F6);
@@ -263,7 +263,7 @@ void CheatingWorker::work()
             int col = minorFrame.cols * cheatingCfg.hpFlagPointX;
             auto minorColor = minorFrame.at<cv::Vec3b>(row, col);
             auto similarity = computeColorSimilarity(minorColor, hpThresholdColor);
-            if (similarity >= 0.9)
+            if (similarity >= 0.9 && high_resolution_clock::now() - lastMinorHeartTime >= heartTimeInterval)
             {
                 lastMinorHeartTime = high_resolution_clock::now();
                 hid::clickKey(hid_, VK_F5);
