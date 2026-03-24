@@ -14,14 +14,12 @@ struct UserData
     uint32_t index;
     const NDIlib_source_t* ndiSources;
     std::string sourceName;
-    CheatingConfig cheatingCfg;
-    DebugModeConfig debugModeCfg;
 
     // Out
-    CheatingWorker* worker;
     bool configureSuccess;
     NDIlib_recv_instance_t recv;
     hid::HID hid;
+    int flag;
 
     // In, Out
     CommandLineMenu* menu;
@@ -34,7 +32,6 @@ void setupCheatingWorker(UserData* data)
 {
     auto failHandler = [&](NDIlib_recv_instance_t& recv)
     {
-        data->worker = nullptr;
         data->configureSuccess = false;
         data->menu->setOptionText(data->index, data->sourceName + " (Not Configured)");
         if (recv)
@@ -43,6 +40,7 @@ void setupCheatingWorker(UserData* data)
             recv = nullptr;
             data->recv = nullptr;
         }
+        data->flag = -1;
     };
 
     // Create the NDI receiver and connect NDI source.
@@ -60,51 +58,16 @@ void setupCheatingWorker(UserData* data)
     NDIlib_recv_connect(recv, data->ndiSources + data->index);
     data->recv = recv;
 
-#ifndef DISABLE_HID
-    // Input the HID's VID and PID.
-    int pid = 0, vid = 0;
     do
     {
-        printf("Please input this NDI sources corresponding HID's VID and PID:\n");
-        if (scanf("%d %d", &vid, &pid) != 2)
-        {
-            while (getchar() != '\n');  // Clear input buffer.
-            printf("Please input valid PID and VID. (Press ESC key to stop and return or press other key to retry)\n");
-            if (CommandLineMenu::getkey() == 0x1B)
-            {
-                printf("User cancel configure.\n");
-                failHandler(recv);
-                return;
-            }
-        }
-        else
-        {
-            break;
-        }
-    } while (true);
-
-    // Open the HID by given PID and VID.
-    auto hid = hid::openHID(vid, pid);
-    if (!hid || reinterpret_cast<intptr_t>(hid) == -1)
-    {
-        printf("Failed to open the HID (vid: %d, pid: %d).\n", vid, pid);
-        failHandler(recv);
-        return;
-    }
-
-    printf("Please input the HID device resolution (x * y).\n");
-    int x = 0, y = 0;
-    do
-    {
-        if (scanf("%d %d", &x, &y) != 2)
+        printf("Is major(1)/minor(2):\n");
+        if (scanf("%d", &data->flag) != 1 || (data->flag != 1 && data->flag != 2))
         {
             while (getchar() != '\n');
-            printf("Please input valid resolution. (Press ESC key to stop and return or press other key to retry)\n");
+            printf("Please input valid flag. (Press ESC key to stop and return or press other key to retry)\n");
             if (CommandLineMenu::getkey() == 0x1B)
             {
                 printf("User cancel configure.\n");
-                hid::closeHID(hid);
-                hid = nullptr;
                 failHandler(recv);
                 return;
             }
@@ -114,48 +77,85 @@ void setupCheatingWorker(UserData* data)
             break;
         }
     } while (true);
-    if (hid::setResolution(hid, x, y) != 0)
-    {
-        printf("Failed to set resolution.\n");
-        hid::closeHID(hid);
-        hid = nullptr;
-        failHandler(recv);
-        return;
-    }
-#else
-    hid::HID hid = nullptr;
-#endif // !DISABLE_HID
 
-    // Start Cheating Worker.
-    auto* worker = new CheatingWorker(recv, hid, data->cheatingCfg, data->debugModeCfg);
-    worker->run();
+    if (data->flag == 2)
+    {
+    #ifndef DISABLE_HID
+        // Input the HID's VID and PID.
+        int pid = 0, vid = 0;
+        do
+        {
+            printf("Please input this NDI sources corresponding HID's VID and PID:\n");
+            if (scanf("%d %d", &vid, &pid) != 2)
+            {
+                while (getchar() != '\n');  // Clear input buffer.
+                printf("Please input valid PID and VID. (Press ESC key to stop and return or press other key to retry)\n");
+                if (CommandLineMenu::getkey() == 0x1B)
+                {
+                    printf("User cancel configure.\n");
+                    failHandler(recv);
+                    return;
+                }
+            }
+            else
+            {
+                break;
+            }
+        } while (true);
+
+        // Open the HID by given PID and VID.
+        auto hid = hid::openHID(vid, pid);
+        if (!hid || reinterpret_cast<intptr_t>(hid) == -1)
+        {
+            printf("Failed to open the HID (vid: %d, pid: %d).\n", vid, pid);
+            failHandler(recv);
+            return;
+        }
+
+        printf("Please input the HID device resolution (x * y).\n");
+        int x = 0, y = 0;
+        do
+        {
+            if (scanf("%d %d", &x, &y) != 2)
+            {
+                while (getchar() != '\n');
+                printf("Please input valid resolution. (Press ESC key to stop and return or press other key to retry)\n");
+                if (CommandLineMenu::getkey() == 0x1B)
+                {
+                    printf("User cancel configure.\n");
+                    hid::closeHID(hid);
+                    hid = nullptr;
+                    failHandler(recv);
+                    return;
+                }
+            }
+            else
+            {
+                break;
+            }
+        } while (true);
+        if (hid::setResolution(hid, x, y) != 0)
+        {
+            printf("Failed to set resolution.\n");
+            hid::closeHID(hid);
+            hid = nullptr;
+            failHandler(recv);
+            return;
+        }
+    #else
+        hid::HID hid = nullptr;
+    #endif // !DISABLE_HID
+        data->hid = hid;
+    }
 
     // Set menu option and user data.
     data->configureSuccess = true;
-    data->worker = worker;
-    data->hid = hid;
-    data->menu->setOptionText(data->index, data->sourceName + " (Configured)");
+    data->menu->setOptionText(data->index, data->sourceName + (data->flag == 1 ? " (Major)" : " (Minor)"));
     data->menu->setOptionCallback(data->index, [data]() {cleanupCheatingWorker(data); });
 }
 
 void cleanupCheatingWorker(UserData* data)
 {
-    if (!data->configureSuccess)
-        return;
-
-    // Stop Cheating Worker.
-    if (data->worker)
-    {
-        printf("Wait Cheating Worker exit...\n");
-        data->worker->stop();
-        printf("Success exit the Cheating Worker.\n");
-
-        delete data->worker;
-        data->worker = nullptr;
-    }
-
-    printf("Wait HID be closed and disconnect NDI source...\n");
-
 #ifndef DISABLE_HID
     if (data->hid)
     {
@@ -187,8 +187,10 @@ void lineageCheating(bool& needRefresh)
     // TODO: input the config file path.
     CheatingConfig cheatingCfg;
     DebugModeConfig debugModeCfg;
-    // debugModeCfg.showWindow = true;
+    debugModeCfg.showWindow = true;
     debugModeCfg.windowName = "dev";
+
+    CheatingWorker* worker = nullptr;
 
     if (!NDIlib_initialize())
     {
@@ -246,18 +248,50 @@ void lineageCheating(bool& needRefresh)
         data.index = i;
         data.ndiSources = ndiSources;
         data.sourceName = sourceName;
-        data.cheatingCfg = cheatingCfg;
-        data.debugModeCfg = debugModeCfg;
-        data.worker = nullptr;
         data.configureSuccess = false;
         data.recv = nullptr;
         data.hid = nullptr;
+        data.flag = -1;
         data.menu = &menu;
 
         userDatas.emplace_back(data);
         menu.addOption(sourceName + " (Not Configured)", [&userDatas, i]() { setupCheatingWorker(&userDatas[i]); });
     }
 
+    menu.addOption("Start", [&]()
+    {
+        if (worker && !worker->isRunning())
+            worker->run();
+        if (!worker)
+        {
+            UserData* major = nullptr;
+            UserData* minor = nullptr;
+            for (auto& data : userDatas)
+            {
+                if (data.flag == 1)
+                    major = &data;
+                else if (data.flag == 2)
+                    minor = &data;
+            }
+
+            if (major == nullptr || minor == nullptr)
+            {
+                printf("You need configure major and minor devices.\n");
+                return;
+            }
+            else
+            {
+                worker = new CheatingWorker(major->recv, minor->recv, minor->hid, cheatingCfg, debugModeCfg);
+                worker->run();
+                printf("Run successfully, press any key return.\n");
+            }
+        }
+    });
+    menu.addOption("Stop", [&]()
+    {
+        if (worker && worker->isRunning())
+            worker->stop();
+    });
     menu.addOption("Refresh", [&]() { needRefresh = true; menu.endReceiveInput(); }, false, false);
     menu.addOption("Exit", [&menu]() { menu.endReceiveInput(); }, false, false);
 
@@ -265,6 +299,13 @@ void lineageCheating(bool& needRefresh)
     menu.startReceiveInput();
 
     // Cleanup
+    if (worker)
+    {
+        worker->stop();
+        delete worker;
+        worker = nullptr;
+    }
+
     for (auto& data : userDatas)
         cleanupCheatingWorker(&data);
 

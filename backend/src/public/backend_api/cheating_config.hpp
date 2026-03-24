@@ -39,7 +39,7 @@ struct CheatingConfig
     int arrowUnchangedTimeThreshold = 800;
     int fps = 10;
 
-    double hpThresholdPercent = 0.3;
+    double hpThresholdPercent = 0.6;
 };
 
 struct DebugModeConfig

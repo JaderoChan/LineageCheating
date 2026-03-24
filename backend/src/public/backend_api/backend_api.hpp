@@ -10,10 +10,11 @@
 #include "cheating_config.hpp"
 #include "progress.hpp"
 
+// Major: Knight/Main player. Minor: Assist player.
 class CheatingWorker
 {
 public:
-    CheatingWorker(NDIlib_recv_instance_t recv, hid::HID hid,
+    CheatingWorker(NDIlib_recv_instance_t majorRecv, NDIlib_recv_instance_t minorRecv, hid::HID hid,
         const CheatingConfig& cheatingConfig, const DebugModeConfig& debugConfig);
     ~CheatingWorker();
 
@@ -33,6 +34,7 @@ private:
     DebugModeConfig debugModeConfig_;
     CheatingConfig cheatingConfig_;
 
-    NDIlib_recv_instance_t recv_;
+    NDIlib_recv_instance_t majorRecv_;
+    NDIlib_recv_instance_t minorecv_;
     hid::HID hid_;
 };
