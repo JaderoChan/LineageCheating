@@ -137,8 +137,9 @@ void CheatingWorker::work()
         currFrame = gameFrameUtils.getMainGameAreaFrame(frame);
 
         // Identify HP and MP.
-        hp = identifyHpMp(gameFrameUtils.getHpAreaFrame(frame));
-        mp = identifyHpMp(gameFrameUtils.getMpAreaFrame(frame));
+        HpMp hpmp = identifyHpMp(gameFrameUtils.getHpMpAreaFrame(frame));
+        hp = hpmp.hp;
+        mp = hpmp.mp;
 
         showDebugFrame(frame);
 
@@ -148,8 +149,8 @@ void CheatingWorker::work()
 
         // The difference area between two frames.
         std::vector<cv::Rect> diffRects = getImageDiffs(prevFrame, currFrame);
-        if (diffRects.size() > 10)
-            diffRects.resize(10);
+        if (diffRects.size() > 6)
+            diffRects.resize(6);
 
         if (debugModeConfig_.showWindow && debugModeConfig_.showDiffRect)
         {
@@ -225,8 +226,9 @@ void CheatingWorker::work()
                         currFrame = gameFrameUtils.getMainGameAreaFrame(frame);
 
                         // Identify HP and MP.
-                        hp = identifyHpMp(gameFrameUtils.getHpAreaFrame(frame));
-                        mp = identifyHpMp(gameFrameUtils.getMpAreaFrame(frame));
+                        HpMp hpmp = identifyHpMp(gameFrameUtils.getHpMpAreaFrame(frame));
+                        hp = hpmp.hp;
+                        mp = hpmp.mp;
 
                         // If the HP is low, press F5 to use potion.
                         if (hp.isValid() && hp.getPercentage() < cheatingCfg.hpThresholdPercent)
@@ -250,6 +252,8 @@ void CheatingWorker::work()
                             if (elapsed >= cheatingCfg.arrowUnchangedTimeThreshold)
                                 break;
                         }
+
+                        std::this_thread::sleep_for(milliseconds(10));
                     }
 
                     // Release left mouse button.
@@ -266,7 +270,11 @@ void CheatingWorker::work()
             if (gotTarget)
                 break;
             diffRects.pop_back();
+
+            std::this_thread::sleep_for(milliseconds(20));
         }
+
+        std::this_thread::sleep_for(milliseconds(20));
     }
 
     NDIlib_framesync_destroy(frameSync);

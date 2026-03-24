@@ -31,8 +31,8 @@ CheatingConfig loadCheatingConfigFromJson(const std::string& json)
     {
         config.mainRect = loadRectFromJsonObject(j.at("mainRect"));
         config.playerRect = loadRectFromJsonObject(j.at("playerRect"));
-        config.hpRect = loadRectFromJsonObject(j.at("hpRect"));
-        config.mpRect = loadRectFromJsonObject(j.at("mpRect"));
+        config.hpMpRect = loadRectFromJsonObject(j.at("hpMpRect"));
+        config.arrowRect = loadRectFromJsonObject(j.at("arrowRect"));
     }
     catch (const std::exception& e)
     {

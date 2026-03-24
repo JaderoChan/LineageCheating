@@ -4,4 +4,10 @@
 
 #include <backend_api/progress.hpp>
 
-Progress identifyHpMp(const cv::Mat& img);
+struct HpMp
+{
+    Progress hp;
+    Progress mp;
+};
+
+HpMp identifyHpMp(const cv::Mat& img);

@@ -6,7 +6,7 @@
 #include "command_line_menu.hpp"
 #include "format_string.hpp"
 
-// #define DISABLE_HID
+#define DISABLE_HID
 
 struct UserData
 {
@@ -187,7 +187,7 @@ void lineageCheating(bool& needRefresh)
     // TODO: input the config file path.
     CheatingConfig cheatingCfg;
     DebugModeConfig debugModeCfg;
-    debugModeCfg.showWindow = true;
+    // debugModeCfg.showWindow = true;
     debugModeCfg.windowName = "dev";
 
     if (!NDIlib_initialize())

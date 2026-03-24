@@ -18,17 +18,11 @@ struct CheatingConfig
         0.521094,
         0.415698
     };
-    FrameProportionRect hpRect = {
-        0.397344,
-        0.793605,
-        0.444531,
-        0.812500
-    };
-    FrameProportionRect mpRect = {
-        0.542578,
-        0.793605,
-        0.575712,
-        0.812500
+    FrameProportionRect hpMpRect = {
+        0.363286,
+        0.777778,
+        0.601562,
+        0.819444
     };
     FrameProportionRect arrowRect = {
         0.837560,
@@ -41,7 +35,7 @@ struct CheatingConfig
     int textRegionExpansionY = 50;
 
     // unit in millisecond
-    int sleepAfterMove = 20;
+    int sleepAfterMove = 50;
     int arrowUnchangedTimeThreshold = 800;
     int fps = 10;
 

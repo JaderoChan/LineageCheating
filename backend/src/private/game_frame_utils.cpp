@@ -14,14 +14,9 @@ cv::Mat GameFrameUtils::getPlayerAreaFrame(const cv::Mat& frame) const
     return cropImageProportioned(frame, config_.playerRect);
 }
 
-cv::Mat GameFrameUtils::getHpAreaFrame(const cv::Mat& frame) const
+cv::Mat GameFrameUtils::getHpMpAreaFrame(const cv::Mat& frame) const
 {
-    return cropImageProportioned(frame, config_.hpRect);
-}
-
-cv::Mat GameFrameUtils::getMpAreaFrame(const cv::Mat& frame) const
-{
-    return cropImageProportioned(frame, config_.mpRect);
+    return cropImageProportioned(frame, config_.hpMpRect);
 }
 
 cv::Mat GameFrameUtils::getArrowAreaFrame(const cv::Mat& frame) const

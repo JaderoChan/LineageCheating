@@ -23,6 +23,7 @@ int main(int argc, char* argv[])
     menu.addOption("Test HID keyboard", testHidKeyboard);
     menu.addOption("Exit", [&menu](){ menu.endReceiveInput(); }, false, false);
 
+    system("chcp 65001");
     menu.show();
     menu.startReceiveInput();
 
