@@ -8,14 +8,13 @@
 
 #include "hid_api.hpp"
 #include "cheating_config.hpp"
-#include "progress.hpp"
 
 // Major: Knight/Main player. Minor: Assist player.
 class CheatingWorker
 {
 public:
     CheatingWorker(NDIlib_recv_instance_t majorRecv, NDIlib_recv_instance_t minorRecv, hid::HID hid,
-        const CheatingConfig& cheatingConfig, const DebugModeConfig& debugConfig);
+        const CheatingConfig& cheatingConfig);
     ~CheatingWorker();
 
     void run();
@@ -31,7 +30,6 @@ private:
     std::atomic<bool> shouldClose_{false};
     std::atomic<bool> isRunning_{false};
 
-    DebugModeConfig debugModeConfig_;
     CheatingConfig cheatingConfig_;
 
     NDIlib_recv_instance_t majorRecv_;

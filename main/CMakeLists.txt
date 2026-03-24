@@ -40,10 +40,3 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${RUNTIME_DEPENDENCIES} $<TARGET_FILE_DIR:${PROJECT_NAME}>
 )
-
-# 复制模型文件至目标文件夹下
-add_custom_command(
-    TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
-    ${MODELS_DIR} $<TARGET_FILE_DIR:${PROJECT_NAME}>/models
-)

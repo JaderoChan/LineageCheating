@@ -6,7 +6,7 @@
 #include "command_line_menu.hpp"
 #include "format_string.hpp"
 
-#define DISABLE_HID
+// #define DISABLE_HID
 
 struct UserData
 {
@@ -111,37 +111,6 @@ void setupCheatingWorker(UserData* data)
             failHandler(recv);
             return;
         }
-
-        printf("Please input the HID device resolution (x * y).\n");
-        int x = 0, y = 0;
-        do
-        {
-            if (scanf("%d %d", &x, &y) != 2)
-            {
-                while (getchar() != '\n');
-                printf("Please input valid resolution. (Press ESC key to stop and return or press other key to retry)\n");
-                if (CommandLineMenu::getkey() == 0x1B)
-                {
-                    printf("User cancel configure.\n");
-                    hid::closeHID(hid);
-                    hid = nullptr;
-                    failHandler(recv);
-                    return;
-                }
-            }
-            else
-            {
-                break;
-            }
-        } while (true);
-        if (hid::setResolution(hid, x, y) != 0)
-        {
-            printf("Failed to set resolution.\n");
-            hid::closeHID(hid);
-            hid = nullptr;
-            failHandler(recv);
-            return;
-        }
     #else
         hid::HID hid = nullptr;
     #endif // !DISABLE_HID
@@ -186,9 +155,6 @@ void lineageCheating(bool& needRefresh)
 {
     // TODO: input the config file path.
     CheatingConfig cheatingCfg;
-    DebugModeConfig debugModeCfg;
-    debugModeCfg.showWindow = true;
-    debugModeCfg.windowName = "dev";
 
     CheatingWorker* worker = nullptr;
 
@@ -255,7 +221,7 @@ void lineageCheating(bool& needRefresh)
         data.menu = &menu;
 
         userDatas.emplace_back(data);
-        menu.addOption(sourceName + " (Not Configured)", [&userDatas, i]() { setupCheatingWorker(&userDatas[i]); });
+        menu.addOption(sourceName + " (Not Configured)", [&userDatas, i]() { setupCheatingWorker(&userDatas[i]); }, true, false);
     }
 
     menu.addOption("Start", [&]()
@@ -281,17 +247,17 @@ void lineageCheating(bool& needRefresh)
             }
             else
             {
-                worker = new CheatingWorker(major->recv, minor->recv, minor->hid, cheatingCfg, debugModeCfg);
+                worker = new CheatingWorker(major->recv, minor->recv, minor->hid, cheatingCfg);
                 worker->run();
                 printf("Run successfully, press any key return.\n");
             }
         }
-    });
+    }, false, false);
     menu.addOption("Stop", [&]()
     {
         if (worker && worker->isRunning())
             worker->stop();
-    });
+    }, false, false);
     menu.addOption("Refresh", [&]() { needRefresh = true; menu.endReceiveInput(); }, false, false);
     menu.addOption("Exit", [&menu]() { menu.endReceiveInput(); }, false, false);
 

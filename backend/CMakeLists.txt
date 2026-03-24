@@ -30,8 +30,6 @@ add_library(${PROJECT_NAME} STATIC ${PROJECT_SOURCES})
 # 配置依赖
 list(PREPEND CMAKE_PREFIX_PATH $ENV{MSVC_LIBS})
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/onnx_runtime/OnnxRuntimeConfig.cmake)
-
 set(3RDPARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty)
 set(OpenCV_DIR $ENV{MSVC_LIBS}/x64/vc16/lib)
 set(NDI_SDK_DIR "D:/00_Dev/NDI 6 SDK")
@@ -46,10 +44,6 @@ find_library(
     MSDK_LIB NAMES msdk
     PATHS ${3RDLIBS_DIR}
 )
-find_library(
-    RAPID_OCR_LIB NAMES RapidOcrOnnx
-    PATHS ${3RDLIBS_DIR}
-)
 
 # 配置头文件路径
 target_include_directories(
@@ -60,7 +54,6 @@ target_include_directories(
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${3RDPARTY_DIR}/json/include
-    ${3RDPARTY_DIR}/rapid_ocr/include
 )
 
 target_link_libraries(
@@ -69,14 +62,8 @@ target_link_libraries(
     ${OpenCV_LIBS}
     ${NDI_LIB}
     ${MSDK_LIB}
-    PRIVATE
-    ${OnnxRuntime_LIBS}
-    ${RAPID_OCR_LIB}
 )
 
 # 定义必需动态库文件
 file(GLOB RUNTIME_DEPENDENCIES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/bin/*.dll)
 set(RUNTIME_DEPENDENCIES ${RUNTIME_DEPENDENCIES} CACHE STRING "Shared libraries of backend dependencies.")
-
-# 定义模型文件夹
-set(MODELS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/models CACHE STRING "Models file directory.")
