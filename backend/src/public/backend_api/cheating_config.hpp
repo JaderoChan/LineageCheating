@@ -5,12 +5,12 @@
 struct CheatingConfig
 {
     // unit in millisecond
-    int heartTimeInterval = 500;
+    int heartTimeInterval = 1000;
 
     int cps = 10;
 
-    double hpFlagPointX = 0.337578;
-    double hpFlagPointY = 0.804167;
+    double hpFlagPointX = 0.363578;
+    double hpFlagPointY = 0.768167;
 
     struct Color
     {

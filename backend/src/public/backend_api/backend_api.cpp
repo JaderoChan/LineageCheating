@@ -47,7 +47,7 @@ static cv::Mat limitImageSize(const cv::Mat& src, int maxX, int maxY)
 
 CheatingWorker::CheatingWorker(NDIlib_recv_instance_t majorRecv, NDIlib_recv_instance_t minorRecv, hid::HID hid,
     const CheatingConfig& cheatingConfig)
-    : majorRecv_(majorRecv), minorecv_(minorRecv), hid_(hid), cheatingConfig_(cheatingConfig)
+    : majorRecv_(majorRecv), minorRecv_(minorRecv), hid_(hid), cheatingConfig_(cheatingConfig)
 {}
 
 CheatingWorker::~CheatingWorker()
@@ -137,7 +137,7 @@ void CheatingWorker::work()
     while (!shouldClose_.load())
     {
         cv::Mat majorFrame = getNewValidFrame(majorRecv_);
-        cv::Mat minorFrame = getNewValidFrame(minorecv_);
+        cv::Mat minorFrame = getNewValidFrame(minorRecv_);
         printf("Get frame: %lld\n", count++);
 
         if (!majorFrame.empty())
@@ -148,9 +148,12 @@ void CheatingWorker::work()
             auto similarity = computeColorSimilarity(majorColor, hpThresholdColor);
             if (similarity >= 0.9 && high_resolution_clock::now() - lastMajorHeartTime >= heartTimeInterval)
             {
-                lastMajorHeartTime = high_resolution_clock::now();
                 hid::clickKey(hid_, VK_F6);
+                lastMajorHeartTime = high_resolution_clock::now();
             }
+
+            // printf("Major pixel: [%d, %d, %d]\n", majorColor[2], majorColor[1], majorColor[0]);
+            // printf("Value: %lf\n", similarity);
         }
 
         if (!minorFrame.empty())
@@ -161,8 +164,8 @@ void CheatingWorker::work()
             auto similarity = computeColorSimilarity(minorColor, hpThresholdColor);
             if (similarity >= 0.9 && high_resolution_clock::now() - lastMinorHeartTime >= heartTimeInterval)
             {
-                lastMinorHeartTime = high_resolution_clock::now();
                 hid::clickKey(hid_, VK_F5);
+                lastMinorHeartTime = high_resolution_clock::now();
             }
 
 //             cv::line(minorFrame, cv::Point(0, row), cv::Point(minorFrame.cols, row), cv::Scalar(0, 0, 255), 3);
@@ -170,7 +173,10 @@ void CheatingWorker::work()
 //             cv::circle(minorFrame, cv::Point(col, row), 10, cv::Scalar(0, 255, 0), 5);
 //             minorFrame =  limitImageSize(minorFrame, 1080, 1080);
 //             std::string text = formatString("Pos: [{}, {}], ({}, {})", col, row, cheatingCfg.hpFlagPointX, cheatingCfg.hpFlagPointY);
-//             cv::putText(minorFrame, text, cv::Point(5, 60), cv::HersheyFonts::FONT_HERSHEY_COMPLEX, 1, cv::Scalar(255, 0, 0));
+//             cv::putText(minorFrame, text, cv::Point(5, 30), cv::HersheyFonts::FONT_HERSHEY_COMPLEX, 1, cv::Scalar(255, 0, 0));
+//
+//             printf("Minor pixel: [%d, %d, %d]\n", minorColor[2], minorColor[1], minorColor[0]);
+//             printf("Value: %lf\n", similarity);
 //
 //             cv::imshow("Minor", minorFrame);
 //             int key = cv::waitKey(1);

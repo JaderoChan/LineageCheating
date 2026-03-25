@@ -33,6 +33,6 @@ private:
     CheatingConfig cheatingConfig_;
 
     NDIlib_recv_instance_t majorRecv_;
-    NDIlib_recv_instance_t minorecv_;
+    NDIlib_recv_instance_t minorRecv_;
     hid::HID hid_;
 };
