@@ -112,14 +112,13 @@ void testHidKeyboard()
         return;
     }
 
-    // do
-    // {
-    //     int key;
-    //     std::cout << "Please input the key for press:\n";
-    //     std::cin >> key;
-    //     hid::clickKey(hid, key);
-    // } while (CommandLineMenu::getkey() != 0x1B);
-    hid::clickKey(hid, VK_F5);
+    do
+    {
+        int key;
+        std::cout << "Please input the key for press:\n";
+        std::cin >> key;
+        hid::clickKey(hid, key);
+    } while (CommandLineMenu::getkey() != 0x1B);
 
     hid::closeHID(hid);
 }
