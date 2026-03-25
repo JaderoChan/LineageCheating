@@ -5,9 +5,8 @@
 struct CheatingConfig
 {
     // unit in millisecond
-    int heartTimeInterval = 1000;
+    int heartTimeInterval = 500;
 
-    int fps = 10;
     int cps = 10;
 
     double hpFlagPointX = 0.337578;

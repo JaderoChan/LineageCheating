@@ -6,112 +6,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "hid_api.hpp"
-
-#pragma once
-
-#include <string>
-#include <sstream>
-
-inline std::string formatString(const std::string& fmtStr)
-{
-    return fmtStr;
-}
-
-template <typename T>
-std::string formatString(const std::string& fmtStr, const T& arg)
-{
-    std::stringstream ss;
-
-    if (fmtStr.size() < 4)
-    {
-        size_t pos = fmtStr.find("{}");
-        if (pos == std::string::npos)
-            return fmtStr;
-
-        ss << fmtStr.substr(0, pos);
-        ss << arg;
-
-        return ss.str() + fmtStr.substr(pos + 2);
-    }
-
-    std::string window(4, '\0');
-    for (size_t i = 0; i < fmtStr.size();)
-    {
-        window[0] = fmtStr[i];
-        window[1] = i < fmtStr.size() - 1 ? fmtStr[i + 1] : '\0';
-        window[2] = i < fmtStr.size() - 2 ? fmtStr[i + 2] : '\0';
-        window[3] = i < fmtStr.size() - 3 ? fmtStr[i + 3] : '\0';
-
-        if (window == "{{}}")
-        {
-            ss << "{}";
-            i += 4;
-            continue;
-        }
-
-        if (window[0] == '{' && window[1] == '}')
-        {
-            ss << arg;
-            return ss.str() + fmtStr.substr(i + 2);
-        }
-        else
-        {
-            ss << window[0];
-            i += 1;
-            continue;
-        }
-    }
-
-    return ss.str();
-}
-
-template <typename T, typename... Args>
-std::string formatString(const std::string& fmtStr, const T& arg, Args&&... args)
-{
-    std::stringstream ss;
-
-    if (fmtStr.size() < 4)
-    {
-        size_t pos = fmtStr.find("{}");
-        if (pos == std::string::npos)
-            return fmtStr;
-
-        ss << fmtStr.substr(0, pos);
-        ss << arg;
-
-        return ss.str() + fmtStr.substr(pos + 2);
-    }
-
-    std::string window(4, '\0');
-    for (size_t i = 0; i < fmtStr.size();)
-    {
-        window[0] = fmtStr[i];
-        window[1] = i < fmtStr.size() - 1 ? fmtStr[i + 1] : '\0';
-        window[2] = i < fmtStr.size() - 2 ? fmtStr[i + 2] : '\0';
-        window[3] = i < fmtStr.size() - 3 ? fmtStr[i + 3] : '\0';
-
-        if (window == "{{}}")
-        {
-            ss << "{}";
-            i += 4;
-            continue;
-        }
-
-        if (window[0] == '{' && window[1] == '}')
-        {
-            ss << arg;
-            return ss.str() + formatString(fmtStr.substr(i + 2), std::forward<Args>(args)...);
-        }
-        else
-        {
-            ss << window[0];
-            i += 1;
-            continue;
-        }
-    }
-
-    return ss.str();
-}
+#include "format_string.hpp"
 
 template <typename T>
 constexpr T square(const T& x) { return x * x; }
@@ -181,8 +76,6 @@ void CheatingWorker::stop()
 
     if (workerThread_.joinable())
         workerThread_.join();
-
-    isRunning_.store(false);
 }
 
 bool CheatingWorker::isRunning() const
@@ -201,15 +94,16 @@ void CheatingWorker::work()
 
     CheatingConfig& cheatingCfg = cheatingConfig_;
 
-    milliseconds frameTimeInterval(1000 / cheatingCfg.fps);
     milliseconds clickTimeInterval(1000 / cheatingCfg.cps);
     milliseconds heartTimeInterval(cheatingCfg.heartTimeInterval);
 
     auto getNewValidFrame = [this](NDIlib_recv_instance_t recv, int timeoutMs = 500) -> cv::Mat
     {
         NDIlib_video_frame_v2_t videoFrame;
+        bool flag = true;
         while (!shouldClose_.load())
         {
+            printf("Try Get Frame%s\n", flag ? "." : "...");
             auto frameType = NDIlib_recv_capture_v3(recv, &videoFrame, nullptr, nullptr, timeoutMs);
             if (frameType == NDIlib_frame_type_video && videoFrame.p_data)
             {
@@ -237,12 +131,14 @@ void CheatingWorker::work()
         hid::clickMouseButton(hid_, 1);
     };
 
+    size_t count = 0;
     auto lastMajorHeartTime = high_resolution_clock::now();
     auto lastMinorHeartTime = high_resolution_clock::now();
     while (!shouldClose_.load())
     {
         cv::Mat majorFrame = getNewValidFrame(majorRecv_);
         cv::Mat minorFrame = getNewValidFrame(minorecv_);
+        printf("Get frame: %lld\n", count++);
 
         if (!majorFrame.empty())
         {
@@ -307,4 +203,6 @@ void CheatingWorker::work()
 
         clickLeftButton();
     }
+
+    isRunning_.store(false);
 }
