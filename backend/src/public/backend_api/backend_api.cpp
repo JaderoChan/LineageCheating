@@ -17,9 +17,9 @@ constexpr double computeColorSimilarity(const cv::Vec3b& lhs, const cv::Vec3b& r
     double rWeight = 1.0, double gWeight = 1.0, double bWeight = 1.0)
 {
     return 1.0 - (
-        square(lhs[0] - rhs[0]) * bWeight +
-        square(lhs[1] - rhs[1]) * gWeight +
-        square(lhs[2] - rhs[2]) * rWeight) /
+        square(static_cast<int>(lhs[0]) - rhs[0]) * bWeight +
+        square(static_cast<int>(lhs[1]) - rhs[1]) * gWeight +
+        square(static_cast<int>(lhs[2]) - rhs[2]) * rWeight) /
         (rWeight + gWeight + bWeight) / MAX_SQUARE;
 }
 
@@ -65,7 +65,8 @@ void CheatingWorker::run()
     shouldClose_.store(false);
     isRunning_.store(true);
 
-    workerThread_ = std::thread([this]() { work(); });
+    workerThread1_ = std::thread([this]() { work1(); });
+    workerThread2_ = std::thread([this]() { work2(); });
 }
 
 void CheatingWorker::stop()
@@ -74,8 +75,12 @@ void CheatingWorker::stop()
 
     shouldClose_.store(true);
 
-    if (workerThread_.joinable())
-        workerThread_.join();
+    if (workerThread1_.joinable())
+        workerThread1_.join();
+    if (workerThread2_.joinable())
+        workerThread2_.join();
+
+    isRunning_.store(false);
 }
 
 bool CheatingWorker::isRunning() const
@@ -83,7 +88,7 @@ bool CheatingWorker::isRunning() const
     return isRunning_.load();
 }
 
-void CheatingWorker::work()
+void CheatingWorker::work1()
 {
     using namespace std::chrono;
 
@@ -92,18 +97,19 @@ void CheatingWorker::work()
         cheatingConfig_.hpThresoldColor.g,
         cheatingConfig_.hpThresoldColor.r);
 
-    CheatingConfig& cheatingCfg = cheatingConfig_;
+    CheatingConfig cheatingCfg = cheatingConfig_;
 
-    milliseconds clickTimeInterval(1000 / cheatingCfg.cps);
     milliseconds heartTimeInterval(cheatingCfg.heartTimeInterval);
 
     auto getNewValidFrame = [this](NDIlib_recv_instance_t recv, int timeoutMs = 500) -> cv::Mat
     {
         NDIlib_video_frame_v2_t videoFrame;
-        bool flag = true;
+        bool logFlag = true;
         while (!shouldClose_.load())
         {
-            printf("Try Get Frame%s\n", flag ? "." : "...");
+            printf("Try Get Frame%s\n", logFlag ? "." : "...");
+            logFlag = !logFlag;
+
             auto frameType = NDIlib_recv_capture_v3(recv, &videoFrame, nullptr, nullptr, timeoutMs);
             if (frameType == NDIlib_frame_type_video && videoFrame.p_data)
             {
@@ -121,24 +127,14 @@ void CheatingWorker::work()
         return cv::Mat();
     };
 
-    auto lastClickTime = high_resolution_clock::now();
-    auto clickLeftButton = [&]()
-    {
-        auto interval = high_resolution_clock::now() - lastClickTime;
-        if (interval < clickTimeInterval)
-            std::this_thread::sleep_for(clickTimeInterval - interval);
-        lastClickTime = high_resolution_clock::now();
-        hid::clickMouseButton(hid_, 1);
-    };
-
-    size_t count = 0;
+    size_t frameNum = 0;
     auto lastMajorHeartTime = high_resolution_clock::now();
     auto lastMinorHeartTime = high_resolution_clock::now();
     while (!shouldClose_.load())
     {
         cv::Mat majorFrame = getNewValidFrame(majorRecv_);
         cv::Mat minorFrame = getNewValidFrame(minorRecv_);
-        printf("Get frame: %lld\n", count++);
+        printf("Get frame: %zu\n", frameNum++);
 
         if (!majorFrame.empty())
         {
@@ -146,14 +142,11 @@ void CheatingWorker::work()
             int col = majorFrame.cols * cheatingCfg.hpFlagPointX;
             auto majorColor = majorFrame.at<cv::Vec3b>(row, col);
             auto similarity = computeColorSimilarity(majorColor, hpThresholdColor);
-            if (similarity >= 0.9 && high_resolution_clock::now() - lastMajorHeartTime >= heartTimeInterval)
+            if (similarity >= 0.9 && (high_resolution_clock::now() - lastMajorHeartTime >= heartTimeInterval))
             {
                 hid::clickKey(hid_, VK_F6);
                 lastMajorHeartTime = high_resolution_clock::now();
             }
-
-            // printf("Major pixel: [%d, %d, %d]\n", majorColor[2], majorColor[1], majorColor[0]);
-            // printf("Value: %lf\n", similarity);
         }
 
         if (!minorFrame.empty())
@@ -162,7 +155,7 @@ void CheatingWorker::work()
             int col = minorFrame.cols * cheatingCfg.hpFlagPointX;
             auto minorColor = minorFrame.at<cv::Vec3b>(row, col);
             auto similarity = computeColorSimilarity(minorColor, hpThresholdColor);
-            if (similarity >= 0.9 && high_resolution_clock::now() - lastMinorHeartTime >= heartTimeInterval)
+            if (similarity >= 0.9 && (high_resolution_clock::now() - lastMinorHeartTime >= heartTimeInterval))
             {
                 hid::clickKey(hid_, VK_F5);
                 lastMinorHeartTime = high_resolution_clock::now();
@@ -174,9 +167,6 @@ void CheatingWorker::work()
 //             minorFrame =  limitImageSize(minorFrame, 1080, 1080);
 //             std::string text = formatString("Pos: [{}, {}], ({}, {})", col, row, cheatingCfg.hpFlagPointX, cheatingCfg.hpFlagPointY);
 //             cv::putText(minorFrame, text, cv::Point(5, 30), cv::HersheyFonts::FONT_HERSHEY_COMPLEX, 1, cv::Scalar(255, 0, 0));
-//
-//             printf("Minor pixel: [%d, %d, %d]\n", minorColor[2], minorColor[1], minorColor[0]);
-//             printf("Value: %lf\n", similarity);
 //
 //             cv::imshow("Minor", minorFrame);
 //             int key = cv::waitKey(1);
@@ -206,9 +196,28 @@ void CheatingWorker::work()
 //                     break;
 //             }
         }
-
-        clickLeftButton();
     }
+}
 
-    isRunning_.store(false);
+void CheatingWorker::work2()
+{
+    using namespace std::chrono;
+
+    CheatingConfig cheatingCfg = cheatingConfig_;
+
+    assert(cheatingCfg.cps != 0);
+    milliseconds clickTimeInterval(1000 / cheatingCfg.cps);
+
+    auto lastClickTime = high_resolution_clock::now();
+    auto clickLeftButton = [&]()
+    {
+        auto interval = high_resolution_clock::now() - lastClickTime;
+        if (interval < clickTimeInterval)
+            std::this_thread::sleep_for(clickTimeInterval - interval);
+        lastClickTime = high_resolution_clock::now();
+        hid::clickMouseButton(hid_, 1);
+    };
+
+    while (!shouldClose_.load())
+        clickLeftButton();
 }

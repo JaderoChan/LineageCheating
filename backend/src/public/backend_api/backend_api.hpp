@@ -23,9 +23,11 @@ public:
     bool isRunning() const;
 
 private:
-    void work();
+    void work1();
+    void work2();
 
-    std::thread workerThread_;
+    std::thread workerThread1_;
+    std::thread workerThread2_;
     mutable std::mutex runStopMtx_;
     std::atomic<bool> shouldClose_{false};
     std::atomic<bool> isRunning_{false};
