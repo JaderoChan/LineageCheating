@@ -144,6 +144,8 @@ void CheatingWorker::work1()
             auto similarity = computeColorSimilarity(majorColor, hpThresholdColor);
             if (similarity >= 0.9 && (high_resolution_clock::now() - lastMajorHeartTime >= heartTimeInterval))
             {
+                printf("Click F6\n");
+
                 hid::clickKey(hid_, VK_F6);
                 lastMajorHeartTime = high_resolution_clock::now();
             }
@@ -157,6 +159,8 @@ void CheatingWorker::work1()
             auto similarity = computeColorSimilarity(minorColor, hpThresholdColor);
             if (similarity >= 0.9 && (high_resolution_clock::now() - lastMinorHeartTime >= heartTimeInterval))
             {
+                printf("Click F5\n");
+
                 hid::clickKey(hid_, VK_F5);
                 lastMinorHeartTime = high_resolution_clock::now();
             }
