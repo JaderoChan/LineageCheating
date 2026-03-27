@@ -34,7 +34,7 @@ void setupCheatingWorker(UserData* data)
     auto failHandler = [&](NDIlib_recv_instance_t& recv)
     {
         data->configureSuccess = false;
-        data->menu->setOptionText(data->index, data->sourceName + " (Not Configured)");
+        data->menu->setOptionText(data->index, data->sourceName + " （未配置）");
         if (recv)
         {
             NDIlib_recv_destroy(recv);
@@ -45,13 +45,13 @@ void setupCheatingWorker(UserData* data)
     };
 
     // Create the NDI receiver and connect NDI source.
-    printf("Start connect NDI source.\n");
+    printf("开始连接 NDI 设备源。\n");
     NDIlib_recv_create_v3_t recvDesc;
     recvDesc.color_format = NDIlib_recv_color_format_BGRX_BGRA;
     NDIlib_recv_instance_t recv = NDIlib_recv_create_v3(&recvDesc);
     if (!recv)
     {
-        printf("Failed to create the NDI receiver.\n");
+        printf("创建 NDI 接收器失败。\n");
         failHandler(recv);
         return;
     }
@@ -61,14 +61,14 @@ void setupCheatingWorker(UserData* data)
 
     do
     {
-        printf("Is major(1)/minor(2):\n");
+        printf("请输入此设备类型（主控机：1；被控机：2）：\n");
         if (scanf("%d", &data->flag) != 1 || (data->flag != 1 && data->flag != 2))
         {
             while (getchar() != '\n');
-            printf("Please input valid flag. (Press ESC key to stop and return or press other key to retry)\n");
+            printf("请输入有效的设备类型。（按 ESC 键退出或按任意键重试）\n");
             if (CommandLineMenu::getkey() == 0x1B)
             {
-                printf("User cancel configure.\n");
+                printf("用户取消操作。\n");
                 failHandler(recv);
                 return;
             }
@@ -86,14 +86,14 @@ void setupCheatingWorker(UserData* data)
         int pid = 0, vid = 0;
         do
         {
-            printf("Please input this NDI sources corresponding HID's VID and PID:\n");
+            printf("请输入此 NDI 源对应的 HID 设备的 VID 与 PID：\n");
             if (scanf("%d %d", &vid, &pid) != 2)
             {
                 while (getchar() != '\n');  // Clear input buffer.
-                printf("Please input valid PID and VID. (Press ESC key to stop and return or press other key to retry)\n");
+                printf("请输入有效的 PID 与 VID。（按 ESC 键退出或按任意键重试）\n");
                 if (CommandLineMenu::getkey() == 0x1B)
                 {
-                    printf("User cancel configure.\n");
+                    printf("用户取消操作。\n");
                     failHandler(recv);
                     return;
                 }
@@ -108,7 +108,7 @@ void setupCheatingWorker(UserData* data)
         auto hid = hid::openHID(vid, pid);
         if (!hid || reinterpret_cast<intptr_t>(hid) == -1)
         {
-            printf("Failed to open the HID (vid: %d, pid: %d).\n", vid, pid);
+            printf("无法打开 HID 设备（VID：%d，PID：%d）。\n", vid, pid);
             failHandler(recv);
             return;
         }
@@ -120,7 +120,7 @@ void setupCheatingWorker(UserData* data)
 
     // Set menu option and user data.
     data->configureSuccess = true;
-    data->menu->setOptionText(data->index, data->sourceName + (data->flag == 1 ? " (Major)" : " (Minor)"));
+    data->menu->setOptionText(data->index, data->sourceName + (data->flag == 1 ? " （主控机）" : " （被控机）"));
     data->menu->setOptionCallback(data->index, [data]() {cleanupCheatingWorker(data); });
 }
 
@@ -146,10 +146,10 @@ void cleanupCheatingWorker(UserData* data)
 
     // Reset menu option and user data.
     data->configureSuccess = false;
-    data->menu->setOptionText(data->index, data->sourceName + " (Not Configured)");
+    data->menu->setOptionText(data->index, data->sourceName + " （未配置）");
     data->menu->setOptionCallback(data->index, [data]() { setupCheatingWorker(data); });
 
-    printf("Clean up Cheating Worker successfully.\n");
+    printf("成功退出。\n");
 }
 
 void lineageCheating(bool& needRefresh)
@@ -161,7 +161,7 @@ void lineageCheating(bool& needRefresh)
 
     if (!NDIlib_initialize())
     {
-        printf("Failed to init NDI.\n");
+        printf("初始化 NDI 失败。\n");
         return;
     }
 
@@ -169,7 +169,7 @@ void lineageCheating(bool& needRefresh)
     NDIlib_find_instance_t ndiFinder = NDIlib_find_create_v2();
     if (!ndiFinder)
     {
-        printf("Failed to create NDI finder.\n");
+        printf("创建 NDI 接收器失败。\n");
         NDIlib_destroy();
         return;
     }
@@ -178,15 +178,15 @@ void lineageCheating(bool& needRefresh)
     const NDIlib_source_t* ndiSources = nullptr;
     do
     {
-        printf("Looking for NDI sources...\n");
+        printf("查找 NDI 源中……\n");
         NDIlib_find_wait_for_sources(ndiFinder, 2000);
         ndiSources = NDIlib_find_get_current_sources(ndiFinder, &ndiSourcesNum);
         if (ndiSourcesNum == 0)
         {
-            printf("No NDI source found. (Press ESC key to stop search and return or press other key to retry)\n");
+            printf("未发现任何 NDI 源。（按 ESC 键退出或按任意键重试）\n");
             if (CommandLineMenu::getkey() == 0x1B)
             {
-                printf("User cancel NDI source search.\n");
+                printf("用户取消操作。\n");
                 NDIlib_find_destroy(ndiFinder);
                 NDIlib_destroy();
                 return;
@@ -202,7 +202,7 @@ void lineageCheating(bool& needRefresh)
     CommandLineMenu menu;
     menu.setOptionTextAlignment(2);
     menu.setTopText(formatString(
-        "Find {} NDI sources.\nPlease select the below NDI sources and configure corresponding Cheating Worker.\n",
+        "发现 {} 个 NDI 源。\n请选择下列 NDI 源配置其类型。\n",
         ndiSourcesNum));
 
     std::vector<UserData> userDatas;
@@ -222,10 +222,10 @@ void lineageCheating(bool& needRefresh)
         data.menu = &menu;
 
         userDatas.emplace_back(data);
-        menu.addOption(sourceName + " (Not Configured)", [&userDatas, i]() { setupCheatingWorker(&userDatas[i]); }, true, false);
+        menu.addOption(sourceName + " （未配置）", [&userDatas, i]() { setupCheatingWorker(&userDatas[i]); }, true, false);
     }
 
-    menu.addOption("Start", [&]()
+    menu.addOption("开始", [&]()
     {
         if (worker && !worker->isRunning())
             worker->run();
@@ -243,24 +243,24 @@ void lineageCheating(bool& needRefresh)
 
             if (major == nullptr || minor == nullptr)
             {
-                printf("You need configure major and minor devices.\n");
+                printf("你需要配置一个主控机与被控机\n");
                 return;
             }
             else
             {
                 worker = new CheatingWorker(major->recv, minor->recv, minor->hid, cheatingCfg);
                 worker->run();
-                printf("Run successfully, press any key return.\n");
+                printf("运行成功，按任意键返回。\n");
             }
         }
     }, false, false);
-    menu.addOption("Stop", [&]()
+    menu.addOption("停止", [&]()
     {
         if (worker && worker->isRunning())
             worker->stop();
     }, false, false);
-    menu.addOption("Refresh", [&]() { needRefresh = true; menu.endReceiveInput(); }, false, false);
-    menu.addOption("Exit", [&menu]() { menu.endReceiveInput(); }, false, false);
+    menu.addOption("刷新", [&]() { needRefresh = true; menu.endReceiveInput(); }, false, false);
+    menu.addOption("退出", [&menu]() { menu.endReceiveInput(); }, false, false);
 
     menu.show();
     menu.startReceiveInput();
