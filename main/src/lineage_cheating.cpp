@@ -61,7 +61,7 @@ void setupCheatingWorker(UserData* data)
 
     do
     {
-        printf("请输入此设备类型（主控机：1；被控机：2）：\n");
+        printf("请输入此设备类型（战斗机：1；辅助机：2）：\n");
         if (scanf("%d", &data->flag) != 1 || (data->flag != 1 && data->flag != 2))
         {
             while (getchar() != '\n');
@@ -120,7 +120,7 @@ void setupCheatingWorker(UserData* data)
 
     // Set menu option and user data.
     data->configureSuccess = true;
-    data->menu->setOptionText(data->index, data->sourceName + (data->flag == 1 ? " （主控机）" : " （被控机）"));
+    data->menu->setOptionText(data->index, data->sourceName + (data->flag == 1 ? " （战斗机）" : " （辅助机）"));
     data->menu->setOptionCallback(data->index, [data]() {cleanupCheatingWorker(data); });
 }
 
@@ -243,7 +243,7 @@ void lineageCheating(bool& needRefresh)
 
             if (major == nullptr || minor == nullptr)
             {
-                printf("你需要配置一个主控机与被控机\n");
+                printf("你需要配置一个战斗机与辅助机\n");
                 return;
             }
             else
