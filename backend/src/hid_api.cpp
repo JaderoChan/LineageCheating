@@ -1,5 +1,7 @@
 #include "hid_api.hpp"
 
+#include <windows.h>
+
 #include <msdk.h>
 
 namespace hid
