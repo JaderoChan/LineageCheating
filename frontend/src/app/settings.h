@@ -7,6 +7,8 @@
 struct Settings
 {
     Language language;
+    QString gameDataFilepath;
+    QString assistProgramConfigFilepath;
 };
 
 Settings loadSettings();
