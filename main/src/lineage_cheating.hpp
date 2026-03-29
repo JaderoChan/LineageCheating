@@ -2,4 +2,4 @@
 
 #include <backend_api/backend_api.hpp>
 
-void lineageCheating();
+void lineageCheating(bool& needRefresh);

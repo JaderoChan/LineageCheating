@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "format_string.hpp"
+#include <backend_api/format_string.hpp>
 
 /**
  * @brief Interactively select points in the image.
@@ -27,9 +27,13 @@ cv::Point selectImagePoint(const cv::Mat& image, int originX, int originY, const
             std::to_string(static_cast<double>(x) / img.cols),
             std::to_string(static_cast<double>(y) / img.rows)
         );
-        cv::putText(img, text, cv::Point(5, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, hintColor);
+        cv::putText(img, text, cv::Point(5, 20), cv::FONT_HERSHEY_SIMPLEX, 1.0, hintColor);
 
-        cv::imshow("Select Image Point", img);
+        std::string winName ="Select Image Point";
+        cv::namedWindow(winName, cv::WINDOW_NORMAL);
+        cv::setWindowProperty(winName, cv::WND_PROP_ASPECT_RATIO, cv::WINDOW_KEEPRATIO);
+        cv::setWindowProperty(winName, cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
+        cv::imshow(winName, img);
 
         int key = cv::waitKey(0);
         switch (key)
