@@ -56,3 +56,5 @@ target_link_libraries(
     ${NDI_LIB}
     ${MSDK_LIB}
 )
+
+set(GAME_DATA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/data/game_data.json CACHE STRING "The game data file.")
