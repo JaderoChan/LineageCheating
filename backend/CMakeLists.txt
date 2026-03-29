@@ -30,30 +30,23 @@ add_library(${PROJECT_NAME} STATIC ${PROJECT_SOURCES})
 # 配置依赖
 list(PREPEND CMAKE_PREFIX_PATH $ENV{MSVC_LIBS})
 
-set(3RDPARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty)
-set(OpenCV_DIR $ENV{MSVC_LIBS}/x64/vc16/lib)
-set(NDI_SDK_DIR "D:/00_Dev/NDI 6 SDK")
-set(3RDLIBS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
-
 find_package(OpenCV REQUIRED)
 find_library(
     NDI_LIB NAMES Processing.NDI.Lib.x64
-    PATHS ${NDI_SDK_DIR}/Lib/x64
+    PATHS ${NDI_SDK_LIBS_DIR}
 )
 find_library(
     MSDK_LIB NAMES msdk
-    PATHS ${3RDLIBS_DIR}
+    PATHS ${3RDPARTY_LIBS_DIR}
 )
 
 # 配置头文件路径
 target_include_directories(
     ${PROJECT_NAME}
     PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/public
-    ${NDI_SDK_DIR}/Include
-    PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${3RDPARTY_DIR}/json/include
+    ${3RDPARTY_DIR}/include
+    ${NDI_SDK_INCLUDE_DIR}
 )
 
 target_link_libraries(
@@ -63,7 +56,3 @@ target_link_libraries(
     ${NDI_LIB}
     ${MSDK_LIB}
 )
-
-# 定义必需动态库文件
-file(GLOB RUNTIME_DEPENDENCIES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/bin/*.dll)
-set(RUNTIME_DEPENDENCIES ${RUNTIME_DEPENDENCIES} CACHE STRING "Shared libraries of backend dependencies.")

@@ -1,6 +1,6 @@
 #include "hid_api.hpp"
 
-#include <private/msdk.h>
+#include <msdk.h>
 
 namespace hid
 {

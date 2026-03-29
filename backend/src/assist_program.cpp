@@ -1,0 +1,301 @@
+#include "assist_program.hpp"
+
+#include <algorithm>
+#include <chrono>
+
+#include "data_struct_utils.hpp"
+#include "format_string.hpp"
+#include "hid_api.hpp"
+#include "opencv_utils.hpp"
+
+static void drawRectOnMat(cv::Mat& mat, const ProportionRect& rect,
+    const cv::Scalar& color = cv::Scalar(0, 255, 0), int tickness = 1)
+{
+    cv::rectangle(mat, convertProportionRectToCvRect(rect, mat.cols, mat.rows), color, tickness);
+}
+
+static void showDebugWindow(cv::Mat& frame, const std::string& winName, const GameData& gameData,
+    bool limitFrameSize, int debugWindowMaxWidth, int debugWindowMaxHeight)
+{
+    drawRectOnMat(frame, gameData.mainRect);
+    drawRectOnMat(frame, gameData.playerRect);
+    drawRectOnMat(frame, gameData.bottomRect);
+    drawRectOnMat(frame, gameData.buffRect);
+    drawRectOnMat(frame, gameData.popupMenuRect);
+    drawRectOnMat(frame, gameData.hpRect);
+    drawRectOnMat(frame, gameData.mpRect);
+    drawRectOnMat(frame, gameData.chatRect);
+
+    cv::Mat hpArea = getMatView(frame, gameData.hpRect);
+    auto samplingPt = convertProportionPosToCvPoint(gameData.hpMpBarInfo.samplingPos, hpArea.cols, hpArea.rows);
+    cv::circle(hpArea, samplingPt, 4, cv::Scalar(0, 255, 0), 1, cv::LineTypes::FILLED);
+
+    if (limitFrameSize)
+    {
+        assert(debugWindowMaxWidth > 0 && debugWindowMaxHeight > 0);
+        frame = limitImageSize(frame, debugWindowMaxWidth, debugWindowMaxHeight);
+    }
+
+    cv::imshow(winName, frame);
+    cv::waitKey(1);
+}
+
+AssistProgram::AssistProgram(
+    NDIlib_recv_instance_t masterRecv, NDIlib_recv_instance_t footmanRecv, hid::HID footmanHid,
+    const GameData& gameData, const AssistProgramConfig& config)
+    : masterRecv_(masterRecv), footmanRecv_(footmanRecv), footmanHid_(footmanHid),
+    gameData_(gameData), config_(config)
+{}
+
+AssistProgram::~AssistProgram()
+{
+    stop();
+}
+
+void AssistProgram::updateGameData(const GameData& gameData)
+{
+    std::lock_guard<std::mutex> locker(gameDataMtx_);
+    gameData_ = gameData;
+}
+
+void AssistProgram::updateConfig(const AssistProgramConfig& config)
+{
+    std::lock_guard<std::mutex> locker(configMtx_);
+    config_ = config;
+}
+
+GameData AssistProgram::getGameData() const
+{
+    std::lock_guard<std::mutex> locker(gameDataMtx_);
+    return gameData_;
+}
+
+AssistProgramConfig AssistProgram::getConfig() const
+{
+    std::lock_guard<std::mutex> locker(configMtx_);
+    return config_;
+}
+
+void AssistProgram::setClickKeyEnable(bool enable)
+{
+    enableClickKey_.store(enable);
+}
+
+bool AssistProgram::isClickKeyEnabled() const
+{
+    return enableClickKey_.load();
+}
+
+void AssistProgram::run()
+{
+    std::lock_guard<std::mutex> locker(runStopMtx_);
+
+    if (isRunning_.load())
+        return;
+
+    shouldClose_.store(false);
+    isRunning_.store(true);
+    activeThreads_.store(2);
+
+    mainWorkThread_ = std::thread([this]()
+    {
+        mainWork();
+        if (activeThreads_.fetch_sub(1) == 1)
+            isRunning_.store(false);
+    });
+    clickKeyWorkThread_ = std::thread([this]()
+    {
+        clickKeyWork();
+        if (activeThreads_.fetch_sub(1) == 1)
+            isRunning_.store(false);
+    });
+}
+
+void AssistProgram::stop()
+{
+    std::lock_guard<std::mutex> locker(runStopMtx_);
+
+    shouldClose_.store(true);
+
+    if (mainWorkThread_.joinable())
+        mainWorkThread_.join();
+    if (clickKeyWorkThread_.joinable())
+        clickKeyWorkThread_.join();
+
+    isRunning_.store(false);
+}
+
+bool AssistProgram::isRunning() const
+{
+    return isRunning_.load();
+}
+
+void AssistProgram::mainWork()
+{
+    using namespace std::chrono;
+
+    auto getNewValidFrame = [this](NDIlib_recv_instance_t recv, uint32_t timeout) -> cv::Mat
+    {
+        auto startTime = high_resolution_clock::now();
+        milliseconds timeoutMs(timeout);
+
+        NDIlib_video_frame_v2_t videoFrame;
+        while (!shouldClose_.load())
+        {
+            if (high_resolution_clock::now() - startTime >= timeoutMs)
+                return cv::Mat();
+
+            auto frameType = NDIlib_recv_capture_v3(recv, &videoFrame, nullptr, nullptr, 100);
+            if (frameType == NDIlib_frame_type_video && videoFrame.p_data)
+            {
+                cv::Mat frame = cv::Mat(
+                    videoFrame.yres, videoFrame.xres, CV_8UC4,
+                    videoFrame.p_data, videoFrame.line_stride_in_bytes).clone();
+                NDIlib_recv_free_video_v2(recv, &videoFrame);
+                cv::cvtColor(frame, frame, cv::COLOR_BGRA2BGR);
+                return frame;
+            }
+
+            if (frameType == NDIlib_frame_type_video)
+                NDIlib_recv_free_video_v2(recv, &videoFrame);
+        }
+
+        return cv::Mat();
+    };
+
+    size_t frameNum = 0;
+    bool masterDebugWindowShowed = false;
+    bool footmanDebugWindowShowed = false;
+
+    auto lastMasterTreatTime = high_resolution_clock::now();
+    auto lastFootmanTreatTime = high_resolution_clock::now();
+    while (!shouldClose_.load())
+    {
+        GameData gameData = getGameData();
+        AssistProgramConfig config = getConfig();
+        milliseconds treatTimeInterval(config.treatTimeInterval);
+
+        if (config.outputLog)
+            printf("Try get frame...\n");
+
+        cv::Mat masterFrame = getNewValidFrame(masterRecv_, config.frameGetterTimeout);
+        if (masterFrame.empty())
+        {
+            if (config.outputLog)
+                printf("Failed to get frame.\n");
+            shouldClose_.store(true);
+            continue;
+        }
+
+        cv::Mat footmanFrame = getNewValidFrame(footmanRecv_, config.frameGetterTimeout);
+        if (footmanFrame.empty())
+        {
+            if (config.outputLog)
+                printf("Failed to get frame.\n");
+            shouldClose_.store(true);
+            continue;
+        }
+
+        if (config.outputLog)
+            printf("Get frame: %zu\n", frameNum++);
+
+        {
+            cv::Mat hpArea = getMatView(masterFrame, gameData.hpRect);
+            auto pos = convertProportionPosToCvPoint(gameData.hpMpBarInfo.samplingPos, hpArea.cols, hpArea.rows);
+            auto color = convertCvVecToRgbColor(hpArea.at<cv::Vec3b>(pos));
+
+            auto similarity = computeColorSimilarity(color, gameData.hpMpBarInfo.baseColor);
+            if (similarity >= config.colorConfidence &&
+                (high_resolution_clock::now() - lastMasterTreatTime >= treatTimeInterval))
+            {
+                if (config.outputLog)
+                    printf("Click F6\n");
+
+                hid::clickKey(footmanHid_, VK_F6);
+                lastMasterTreatTime = high_resolution_clock::now();
+            }
+
+            if (config.showDebugWindow)
+            {
+                showDebugWindow(masterFrame, "Master", gameData,
+                    config.limitDebugWindowSize, config.debugWindowMaxWidth, config.debugWindowMaxHeight);
+                masterDebugWindowShowed = true;
+            }
+            else
+            {
+                if (masterDebugWindowShowed)
+                {
+                    cv::destroyWindow("Master");
+                    masterDebugWindowShowed = false;
+                }
+            }
+        }
+
+        {
+            cv::Mat hpArea = getMatView(footmanFrame, gameData.hpRect);
+            auto pos = convertProportionPosToCvPoint(gameData.hpMpBarInfo.samplingPos, hpArea.cols, hpArea.rows);
+            auto color = convertCvVecToRgbColor(hpArea.at<cv::Vec3b>(pos));
+
+            auto similarity = computeColorSimilarity(color, gameData.hpMpBarInfo.baseColor);
+            if (similarity >= config.colorConfidence &&
+                (high_resolution_clock::now() - lastFootmanTreatTime >= treatTimeInterval))
+            {
+                if (config.outputLog)
+                    printf("Click F5\n");
+
+                hid::clickKey(footmanHid_, VK_F5);
+                lastFootmanTreatTime = high_resolution_clock::now();
+            }
+
+            if (config.showDebugWindow)
+            {
+                showDebugWindow(footmanFrame, "Footman", gameData,
+                    config.limitDebugWindowSize, config.debugWindowMaxWidth, config.debugWindowMaxHeight);
+                footmanDebugWindowShowed = true;
+            }
+            else
+            {
+                if (footmanDebugWindowShowed)
+                {
+                    cv::destroyWindow("Footman");
+                    footmanDebugWindowShowed = false;
+                }
+            }
+        }
+    }
+
+    if (masterDebugWindowShowed)
+        cv::destroyWindow("Master");
+    if (footmanDebugWindowShowed)
+        cv::destroyWindow("Footman");
+}
+
+void AssistProgram::clickKeyWork()
+{
+    using namespace std::chrono;
+
+    auto lastClickTime = high_resolution_clock::now();
+    while (!shouldClose_.load())
+    {
+        if (!enableClickKey_.load())
+        {
+            std::this_thread::sleep_for(milliseconds(50));
+            lastClickTime = high_resolution_clock::now();
+            continue;
+        }
+
+        AssistProgramConfig config = getConfig();
+        assert(config.cps != 0);
+        milliseconds clickTimeInterval(1000 / config.cps);
+
+        auto interval = high_resolution_clock::now() - lastClickTime;
+        if (interval < clickTimeInterval)
+            std::this_thread::sleep_for(clickTimeInterval - interval);
+
+        if (config.outputLog)
+            printf("Click mouse left button.\n");
+
+        hid::clickMouseButton(footmanHid_, 1);
+        lastClickTime = high_resolution_clock::now();
+    }
+}

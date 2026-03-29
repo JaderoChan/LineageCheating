@@ -157,7 +157,7 @@ void lineageCheating(bool& needRefresh)
     // TODO: input the config file path.
     CheatingConfig cheatingCfg;
 
-    CheatingWorker* worker = nullptr;
+    AssistProgram* worker = nullptr;
 
     if (!NDIlib_initialize())
     {
@@ -248,7 +248,7 @@ void lineageCheating(bool& needRefresh)
             }
             else
             {
-                worker = new CheatingWorker(major->recv, minor->recv, minor->hid, cheatingCfg);
+                worker = new AssistProgram(major->recv, minor->recv, minor->hid, cheatingCfg);
                 worker->run();
                 printf("运行成功，按任意键返回。\n");
             }
