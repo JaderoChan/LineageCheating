@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include <backend_api/format_string.hpp>
+#include <format_string.hpp>
 
 /**
  * @brief Interactively select points in the image.

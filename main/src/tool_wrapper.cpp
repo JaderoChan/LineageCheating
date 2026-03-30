@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 
-#include <backend_api/hid_api.hpp>
+#include <hid_api.hpp>
 
 #include "command_line_menu.hpp"
 #include "image_interactive_utils.hpp"

@@ -3,7 +3,8 @@
 #include <opencv2/opencv.hpp>
 #include <Processing.NDI.Lib.h>
 
-#include <backend_api/format_string.hpp>
+#include <format_string.hpp>
+#include <assist_program.hpp>
 
 #include "command_line_menu.hpp"
 
@@ -155,7 +156,17 @@ void cleanupCheatingWorker(UserData* data)
 void lineageCheating(bool& needRefresh)
 {
     // TODO: input the config file path.
-    CheatingConfig cheatingCfg;
+    GameData gameData;
+    AssistProgramConfig config;
+    try
+    {
+        gameData = GameData::fromFile("./game_data.json");
+    }
+    catch (const std::exception& e)
+    {
+        printf("Failed to read game data: %s", e.what());
+        return;
+    }
 
     AssistProgram* worker = nullptr;
 
@@ -248,7 +259,7 @@ void lineageCheating(bool& needRefresh)
             }
             else
             {
-                worker = new AssistProgram(major->recv, minor->recv, minor->hid, cheatingCfg);
+                worker = new AssistProgram(major->recv, minor->recv, minor->hid, gameData, config);
                 worker->run();
                 printf("运行成功，按任意键返回。\n");
             }

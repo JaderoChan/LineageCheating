@@ -161,7 +161,6 @@ if(NOT APPLE)
 endif()
 
 # 复制运行时依赖库
-file(GLOB RUNTIME_DEPENDENCIES CONFIGURE_DEPENDS ${3RDPARTY_BINS_DIR}/*.dll)
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different

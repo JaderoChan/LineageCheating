@@ -22,5 +22,12 @@ set(NDI_SDK_DIR "D:/00_Dev/NDI 6 SDK")
 set(NDI_SDK_INCLUDE_DIR ${NDI_SDK_DIR}/Include)
 set(NDI_SDK_LIBS_DIR ${NDI_SDK_DIR}/Lib/x64)
 
+file(GLOB RUNTIME_DEPENDENCIES CONFIGURE_DEPENDS ${3RDPARTY_BINS_DIR}/*.dll)
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/backend)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/frontend)
+
+set(TEST ON)
+if(${TEST})
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/main)
+endif()
