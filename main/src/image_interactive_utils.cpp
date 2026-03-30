@@ -15,21 +15,28 @@ cv::Point selectImagePoint(const cv::Mat& image, int originX, int originY, const
 {
     int x = originX, y = originY;
     bool shouldClose = false;
+    cv::Point colorCircleCenter(image.cols - 40, 40);
+    int colorCircleRadius = 30;
 
     while (!shouldClose)
     {
         cv::Mat img = image.clone();
 
+        cv::Vec3b color = img.at<cv::Vec3b>(y, x);
         cv::line(img, cv::Point(0, y), cv::Point(img.cols, y), hintColor);  // Horizontal
         cv::line(img, cv::Point(x, 0), cv::Point(x, img.rows), hintColor);  // Vertical
         std::string text = formatString(
-            "[{}, {}] ({}, {})",
+            "[{}, {}] ({}, {}) RGB({}, {}, {})",
             std::to_string(x),
             std::to_string(y),
             std::to_string(static_cast<double>(x) / img.cols),
-            std::to_string(static_cast<double>(y) / img.rows)
+            std::to_string(static_cast<double>(y) / img.rows),
+            static_cast<int>(color[2]),
+            static_cast<int>(color[1]),
+            static_cast<int>(color[0])
         );
         cv::putText(img, text, cv::Point(5, 40), cv::FONT_HERSHEY_SIMPLEX, 1.5, hintColor, 2);
+        cv::circle(img, colorCircleCenter, colorCircleRadius, color, cv::FILLED);
 
         std::string winName ="Select Image Point";
         cv::namedWindow(winName, cv::WINDOW_NORMAL);
