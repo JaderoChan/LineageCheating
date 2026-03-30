@@ -23,6 +23,7 @@ set(NDI_SDK_INCLUDE_DIR ${NDI_SDK_DIR}/Include)
 set(NDI_SDK_LIBS_DIR ${NDI_SDK_DIR}/Lib/x64)
 
 file(GLOB RUNTIME_DEPENDENCIES CONFIGURE_DEPENDS ${3RDPARTY_BINS_DIR}/*.dll)
+set(GAME_DATA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/data/game_data.json)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/backend)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/frontend)
