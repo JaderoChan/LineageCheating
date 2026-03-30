@@ -22,14 +22,18 @@ constexpr T square(const T& x) { return x * x; }
  * @param bWeight RGB 色彩空间中，蓝色分量的距离权重。
  * @return 两种颜色的相似度，其值域为 `[0.0, 1.0]`，两种颜色越接近，相似度越接近 `1.0`。
  */
-constexpr double computeColorSimilarity(const RgbColor& lhs, const RgbColor& rhs,
+inline double computeColorSimilarity(const RgbColor& lhs, const RgbColor& rhs,
     double rWeight = 1.0, double gWeight = 1.0, double bWeight = 1.0)
 {
     constexpr int UINT8_MAX_SQUARE = square<int>(UINT8_MAX);
 
-    return 1.0 - (
-        square(lhs.r - rhs.r) * rWeight +
-        square(lhs.g - rhs.g) * gWeight +
-        square(lhs.b - rhs.b) * bWeight) /
-        (rWeight + gWeight + bWeight) / UINT8_MAX_SQUARE;
+    double distSq =
+        square(static_cast<int>(lhs.r) - static_cast<int>(rhs.r)) * rWeight +
+        square(static_cast<int>(lhs.g) - static_cast<int>(rhs.g)) * gWeight +
+        square(static_cast<int>(lhs.b) - static_cast<int>(rhs.b)) * bWeight;
+
+    double maxDistSq =
+        UINT8_MAX_SQUARE * (rWeight + gWeight + bWeight);
+
+    return 1.0 - std::sqrt(distSq / maxDistSq);
 }

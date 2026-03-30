@@ -177,7 +177,7 @@ void AssistProgram::mainWork()
     };
 
     // Debug使用
-    size_t frameNum = 0;
+    size_t frameNum = 1;
     bool masterDebugWindowShowed = false;
     bool footmanDebugWindowShowed = false;
 
@@ -274,6 +274,13 @@ void AssistProgram::mainWork()
 
             // 若新采样点颜色与血条底色相同则进行回城，并退出工作线程。
             auto newSimilarity = computeColorSimilarity(newColor, gameData.hpMpBarInfo.baseColor);
+            if (config.outputLog)
+            {
+                printf("Footman HP bar low pos color: RGB(%d, %d, %d), similarity: %lf\n",
+                    static_cast<int>(newColor.r), static_cast<int>(newColor.g), static_cast<int>(newColor.b),
+                    newSimilarity);
+            }
+
             if (newSimilarity >= config.colorConfidence)
             {
                 if (config.outputLog)
