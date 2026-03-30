@@ -170,6 +170,8 @@ add_custom_command(
 # 复制游戏数据
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+    $<TARGET_FILE_DIR:${PROJECT_NAME}>/data
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${GAME_DATA_FILE} $<TARGET_FILE_DIR:${PROJECT_NAME}>/data
 )

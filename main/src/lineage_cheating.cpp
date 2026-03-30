@@ -160,7 +160,7 @@ void lineageCheating(bool& needRefresh)
     AssistProgramConfig config;
     try
     {
-        gameData = GameData::fromFile("./game_data.json");
+        gameData = GameData::fromFile("./data/game_data.json");
     }
     catch (const std::exception& e)
     {
