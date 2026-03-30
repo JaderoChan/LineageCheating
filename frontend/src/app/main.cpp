@@ -5,6 +5,7 @@
 #include <config.h>
 
 #include "logo_icon.h"
+#include "main_window.h"
 #include "settings.h"
 
 int main(int argc, char* argv[])
@@ -23,7 +24,8 @@ int main(int argc, char* argv[])
         setLanguage(settings.language);
     }
 
-    // TODO
+    MainWindow wgt;
+    wgt.show();
 
     int ret = a.exec();
 

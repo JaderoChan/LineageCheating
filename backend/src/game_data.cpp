@@ -2,21 +2,21 @@
 
 #include <fstream>
 
-#define READ_FIELD_FROM_JSON(struct, field, json, defaultValue) (struct).field = (json).value(#field, (defaultValue))
-#define READ_PROPORTION_RECT_FIELD_FROM_JSON(struct, field, json) \
-(struct).field = loadProportionRectFromJson((json).value(#field, nlohmann::json::object()))
-#define READ_PROPORTION_POS_FIELD_FROM_JSON(struct, field, json) \
-(struct).field = loadProportionPosFromJson((json).value(#field, nlohmann::json::object()))
-#define READ_RGB_COLOR_FIELD_FROM_JSON(struct, field, json) \
-(struct).field = loadRgbColorFromJson((json).value(#field, nlohmann::json::object()))
+#define READ_FIELD_FROM_JSON(struct, field, jsonObj, defaultValue) (struct).field = (jsonObj).value(#field, (defaultValue))
+#define READ_PROPORTION_RECT_FIELD_FROM_JSON(struct, field, jsonObj) \
+(struct).field = loadProportionRectFromJson((jsonObj).at(#field))
+#define READ_PROPORTION_POS_FIELD_FROM_JSON(struct, field, jsonObj) \
+(struct).field = loadProportionPosFromJson((jsonObj).at(#field))
+#define READ_RGB_COLOR_FIELD_FROM_JSON(struct, field, jsonObj) \
+(struct).field = loadRgbColorFromJson((jsonObj).at(#field))
 
-#define WRITE_FIELD_TO_JSON(struct, field, json) (json)[#field] = (struct).field
-#define WRITE_PROPORTION_RECT_FIELD_TO_JSON(struct, field, json) \
-(json)[#field] = writeProportionRectToJson((struct).field)
-#define WRITE_PROPORTION_POS_FIELD_TO_JSON(struct, field, json) \
-(json)[#field] = writeProportionPosToJson((struct).field)
-#define WRITE_RGB_COLOR_FIELD_TO_JSON(struct, field, json) \
-(json)[#field] = writeRgbColorToJson((struct).field)
+#define WRITE_FIELD_TO_JSON(struct, field, jsonObj) (jsonObj)[#field] = (struct).field
+#define WRITE_PROPORTION_RECT_FIELD_TO_JSON(struct, field, jsonObj) \
+(jsonObj)[#field] = writeProportionRectToJson((struct).field)
+#define WRITE_PROPORTION_POS_FIELD_TO_JSON(struct, field, jsonObj) \
+(jsonObj)[#field] = writeProportionPosToJson((struct).field)
+#define WRITE_RGB_COLOR_FIELD_TO_JSON(struct, field, jsonObj) \
+(jsonObj)[#field] = writeRgbColorToJson((struct).field)
 
 GameData GameData::fromJson(const nlohmann::json& json)
 {
@@ -31,17 +31,19 @@ GameData GameData::fromJson(const nlohmann::json& json)
     READ_PROPORTION_RECT_FIELD_FROM_JSON(result, mpRect, json);
     READ_PROPORTION_RECT_FIELD_FROM_JSON(result, chatRect, json);
 
-    READ_PROPORTION_RECT_FIELD_FROM_JSON(result, hotkeyRects.f4, json);
-    READ_PROPORTION_RECT_FIELD_FROM_JSON(result, hotkeyRects.f5, json);
-    READ_PROPORTION_RECT_FIELD_FROM_JSON(result, hotkeyRects.f6, json);
-    READ_PROPORTION_RECT_FIELD_FROM_JSON(result, hotkeyRects.f7, json);
-    READ_PROPORTION_RECT_FIELD_FROM_JSON(result, hotkeyRects.f8, json);
-    READ_PROPORTION_RECT_FIELD_FROM_JSON(result, hotkeyRects.f9, json);
+    nlohmann::json hotkeyRectsObj = json.at("hotkeyRects");
+    READ_PROPORTION_RECT_FIELD_FROM_JSON(result.hotkeyRects, f4, hotkeyRectsObj);
+    READ_PROPORTION_RECT_FIELD_FROM_JSON(result.hotkeyRects, f5, hotkeyRectsObj);
+    READ_PROPORTION_RECT_FIELD_FROM_JSON(result.hotkeyRects, f6, hotkeyRectsObj);
+    READ_PROPORTION_RECT_FIELD_FROM_JSON(result.hotkeyRects, f7, hotkeyRectsObj);
+    READ_PROPORTION_RECT_FIELD_FROM_JSON(result.hotkeyRects, f8, hotkeyRectsObj);
+    READ_PROPORTION_RECT_FIELD_FROM_JSON(result.hotkeyRects, f9, hotkeyRectsObj);
 
-    READ_PROPORTION_POS_FIELD_FROM_JSON(result, hpMpBarInfo.samplingPos, json);
-    READ_RGB_COLOR_FIELD_FROM_JSON(result, hpMpBarInfo.baseColor, json);
-    READ_RGB_COLOR_FIELD_FROM_JSON(result, hpMpBarInfo.hpColor, json);
-    READ_RGB_COLOR_FIELD_FROM_JSON(result, hpMpBarInfo.mpColor, json);
+    nlohmann::json hpMpBarInfoObj = json.at("hpMpBarInfo");
+    READ_PROPORTION_POS_FIELD_FROM_JSON(result.hpMpBarInfo, samplingPos, hpMpBarInfoObj);
+    READ_RGB_COLOR_FIELD_FROM_JSON(result.hpMpBarInfo, baseColor, hpMpBarInfoObj);
+    READ_RGB_COLOR_FIELD_FROM_JSON(result.hpMpBarInfo, hpColor, hpMpBarInfoObj);
+    READ_RGB_COLOR_FIELD_FROM_JSON(result.hpMpBarInfo, mpColor, hpMpBarInfoObj);
 
     return result;
 }
@@ -74,17 +76,21 @@ nlohmann::json GameData::toJson() const
     WRITE_PROPORTION_RECT_FIELD_TO_JSON(*this, mpRect, j);
     WRITE_PROPORTION_RECT_FIELD_TO_JSON(*this, chatRect, j);
 
-    WRITE_PROPORTION_RECT_FIELD_TO_JSON(*this, hotkeyRects.f4, j);
-    WRITE_PROPORTION_RECT_FIELD_TO_JSON(*this, hotkeyRects.f5, j);
-    WRITE_PROPORTION_RECT_FIELD_TO_JSON(*this, hotkeyRects.f6, j);
-    WRITE_PROPORTION_RECT_FIELD_TO_JSON(*this, hotkeyRects.f7, j);
-    WRITE_PROPORTION_RECT_FIELD_TO_JSON(*this, hotkeyRects.f8, j);
-    WRITE_PROPORTION_RECT_FIELD_TO_JSON(*this, hotkeyRects.f9, j);
+    nlohmann::json hotkeyRectsObj;
+    WRITE_PROPORTION_RECT_FIELD_TO_JSON(this->hotkeyRects, f4, hotkeyRectsObj);
+    WRITE_PROPORTION_RECT_FIELD_TO_JSON(this->hotkeyRects, f5, hotkeyRectsObj);
+    WRITE_PROPORTION_RECT_FIELD_TO_JSON(this->hotkeyRects, f6, hotkeyRectsObj);
+    WRITE_PROPORTION_RECT_FIELD_TO_JSON(this->hotkeyRects, f7, hotkeyRectsObj);
+    WRITE_PROPORTION_RECT_FIELD_TO_JSON(this->hotkeyRects, f8, hotkeyRectsObj);
+    WRITE_PROPORTION_RECT_FIELD_TO_JSON(this->hotkeyRects, f9, hotkeyRectsObj);
+    j["hotkeyRects"] = hotkeyRectsObj;
 
-    WRITE_PROPORTION_POS_FIELD_TO_JSON(*this, hpMpBarInfo.samplingPos, j);
-    WRITE_RGB_COLOR_FIELD_TO_JSON(*this, hpMpBarInfo.baseColor, j);
-    WRITE_RGB_COLOR_FIELD_TO_JSON(*this, hpMpBarInfo.hpColor, j);
-    WRITE_RGB_COLOR_FIELD_TO_JSON(*this, hpMpBarInfo.mpColor, j);
+    nlohmann::json hpMpBarInfoObj;
+    WRITE_PROPORTION_POS_FIELD_TO_JSON(this->hpMpBarInfo, samplingPos, hotkeyRectsObj);
+    WRITE_RGB_COLOR_FIELD_TO_JSON(this->hpMpBarInfo, baseColor, hotkeyRectsObj);
+    WRITE_RGB_COLOR_FIELD_TO_JSON(this->hpMpBarInfo, hpColor, hotkeyRectsObj);
+    WRITE_RGB_COLOR_FIELD_TO_JSON(this->hpMpBarInfo, mpColor, hotkeyRectsObj);
+    j["hpMpBarInfo"] = hpMpBarInfoObj;
 
     return j;
 }

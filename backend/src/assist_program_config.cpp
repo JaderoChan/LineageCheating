@@ -2,8 +2,8 @@
 
 #include <fstream>
 
-#define READ_FIELD_FROM_JSON(struct, field, json, defaultValue) (struct).field = (json).value(#field, (defaultValue))
-#define WRITE_FIELD_TO_JSON(struct, field, json) (json)[#field] = (struct).field
+#define READ_FIELD_FROM_JSON(struct, field, jsonObj, defaultValue) (struct).field = (jsonObj).value(#field, (defaultValue))
+#define WRITE_FIELD_TO_JSON(struct, field, jsonObj) (jsonObj)[#field] = (struct).field
 
 AssistProgramConfig AssistProgramConfig::fromJson(const nlohmann::json& json)
 {
