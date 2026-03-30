@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <chrono>
 
-#include "data_struct_utils.hpp"
+#include "data_struct_converter.hpp"
 #include "format_string.hpp"
 #include "hid_api.hpp"
 #include "opencv_utils.hpp"

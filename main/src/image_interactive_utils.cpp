@@ -1,8 +1,10 @@
 #include "image_interactive_utils.hpp"
 
 #include <algorithm>
+#include <iostream>
 
 #include <format_string.hpp>
+#include <opencv_utils.hpp>
 
 /**
  * @brief Interactively select points in the image.
@@ -67,5 +69,28 @@ cv::Point selectImagePoint(const cv::Mat& image, int originX, int originY, const
     return cv::Point(x, y);
 }
 
-void selectImagePointToolWrapper()
-{}
+void cropImageByRect()
+{
+    std::string imgPath;
+    printf("Please input source image path:\n");
+    std::cin >> imgPath;
+
+    double ltX = 0.0, ltY = 0.0;
+    double rbX = 0.0, rbY = 0.0;
+
+    printf("Please input left top x and y:\n");
+    std::cin >> ltX >> ltY;
+
+    printf("Please input right bottom x and y:\n");
+    std::cin >> rbX >> rbY;
+
+    std::string outPath;
+    printf("Please input output image path:\n");
+    std::cin >> outPath;
+
+    cv::Mat image = cv::imread(imgPath);
+    cv::Mat outImg = getMatView(image, ProportionRect(ltX, ltY, rbX, rbY));
+    cv::imwrite(outPath, outImg);
+
+    printf("Write image successfully!\n");
+}

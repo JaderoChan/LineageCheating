@@ -66,9 +66,3 @@ inline RgbColor convertCvVecToRgbColor(const cv::Vec3b& color)
 {
     return RgbColor(color[2], color[1], color[0]);
 }
-
-inline cv::Mat getMatView(cv::Mat& mat, const ProportionRect& rect)
-{
-    assert(rect.isValid());
-    return mat(convertProportionRectToCvRect(rect, mat.cols, mat.rows));
-}

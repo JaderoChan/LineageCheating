@@ -1,3 +1,24 @@
 {
-
+    "mainRect": [],
+    "playerRect": [],
+    "bottomRect": [],
+    "buffRect": [],
+    "popupMenuRect": [],
+    "hpRect": [],
+    "mpRect": [],
+    "chatRect": [],
+    "hotkeyRects": {
+        "f4": [],
+        "f5": [],
+        "f6": [],
+        "f7": [],
+        "f8": [],
+        "f9": []
+    },
+    "hpMpBarInfo": {
+        "samplingPos": [],
+        "baseColor": [],
+        "hpColor": [],
+        "mpColor": []
+    }
 }

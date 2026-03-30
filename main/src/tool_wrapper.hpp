@@ -2,6 +2,8 @@
 
 void selectImagePointTool();
 
+void cropImageByRectTool();
+
 void testHidMouseMove();
 
 void testHidMouseButton();

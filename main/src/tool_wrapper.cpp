@@ -25,6 +25,11 @@ void selectImagePointTool()
     std::cout << "所选点坐标：" << point << std::endl;
 }
 
+void cropImageByRectTool()
+{
+    cropImageByRect();
+}
+
 void testHidMouseMove()
 {
     int vid = 0, pid = 0;
