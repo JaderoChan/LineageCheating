@@ -59,6 +59,10 @@ cv::Point selectImagePoint(const cv::Mat& image, int originX, int originY, const
             case 0x1B:
                 shouldClose = true;
                 break;
+            case 0x0A:
+                printf("[%d, %d] (%lf, %lf)\n", x, y,
+                    static_cast<double>(x) / img.cols, static_cast<double>(y) / img.rows);
+                break;
             default:
                 break;
         }
