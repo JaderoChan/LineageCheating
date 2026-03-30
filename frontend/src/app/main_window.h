@@ -9,6 +9,9 @@ class MainWindow : public TrMainWindow
 public:
     explicit MainWindow(QWidget* parent = nullptr);
 
+protected:
+    void updateText() override;
+
 private:
     Ui::MainWindow ui;
 };

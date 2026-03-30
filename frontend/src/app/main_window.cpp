@@ -7,4 +7,8 @@ MainWindow::MainWindow(QWidget* parent)
 {
     ui.setupUi(this);
 
+    updateText();
 }
+
+void MainWindow::updateText()
+{}

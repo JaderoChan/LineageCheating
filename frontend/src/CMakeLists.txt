@@ -62,10 +62,11 @@ if (MSVC)
 endif()
 
 # 指定为 GUI 应用程序
+option(KEEP_TERMINAL ON)
 if(WIN32)
     set_target_properties(
         ${PROJECT_NAME} PROPERTIES
-        WIN32_EXECUTABLE ON
+        WIN32_EXECUTABLE $<BOOL:KEEP_TERMINAL>
     )
 endif()
 

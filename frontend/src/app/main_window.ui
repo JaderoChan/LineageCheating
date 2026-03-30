@@ -1,23 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <widget class="QMainWindow" name="Form">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>600</width>
+    <height>480</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>MainWindow</string>
+  <property name="font">
+   <font>
+    <stylestrategy>PreferAntialias</stylestrategy>
+   </font>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
-  <widget class="QMenuBar" name="menubar"/>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QTabWidget" name="tabWidget">
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>Tab 1</string>
+       </attribute>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>600</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionSearch_HID_Sources"/>
+    <addaction name="actionSelect_Image_Point"/>
+    <addaction name="actionSelect_Screen_Color"/>
+    <addaction name="actionTest_HID"/>
+   </widget>
+   <addaction name="menuTools"/>
+  </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionSearch_HID_Sources">
+   <property name="text">
+    <string>Search HID Sources</string>
+   </property>
+  </action>
+  <action name="actionSelect_Image_Point">
+   <property name="text">
+    <string>Select Image Point</string>
+   </property>
+  </action>
+  <action name="actionSelect_Screen_Color">
+   <property name="text">
+    <string>Select Screen Color</string>
+   </property>
+  </action>
+  <action name="actionTest_HID">
+   <property name="text">
+    <string>Test HID</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
 </ui>
-
