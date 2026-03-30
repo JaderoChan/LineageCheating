@@ -9,14 +9,15 @@
 #include "opencv_utils.hpp"
 
 static void drawRectOnMat(cv::Mat& mat, const ProportionRect& rect,
-    const cv::Scalar& color = cv::Scalar(0, 255, 0), int tickness = 1)
+    const cv::Scalar& color = cv::Scalar(0, 255, 0), int thickness = 1)
 {
-    cv::rectangle(mat, convertProportionRectToCvRect(rect, mat.cols, mat.rows), color, tickness);
+    cv::rectangle(mat, convertProportionRectToCvRect(rect, mat.cols, mat.rows), color, thickness);
 }
 
-static void showDebugWindow(cv::Mat& frame, const std::string& winName, const GameData& gameData,
-    bool limitFrameSize, int debugWindowMaxWidth, int debugWindowMaxHeight)
+static void showDebugWindow(cv::Mat& frame, const std::string& winName,
+    const GameData& gameData, const AssistProgramConfig& config)
 {
+    // 画框
     drawRectOnMat(frame, gameData.mainRect);
     drawRectOnMat(frame, gameData.playerRect);
     drawRectOnMat(frame, gameData.bottomRect);
@@ -27,13 +28,22 @@ static void showDebugWindow(cv::Mat& frame, const std::string& winName, const Ga
     drawRectOnMat(frame, gameData.chatRect);
 
     cv::Mat hpArea = getMatView(frame, gameData.hpRect);
-    auto samplingPt = convertProportionPosToCvPoint(gameData.hpMpBarInfo.samplingPos, hpArea.cols, hpArea.rows);
-    cv::circle(hpArea, samplingPt, 4, cv::Scalar(0, 255, 0), 1, cv::LineTypes::FILLED);
+    assert(!hpArea.empty());
 
-    if (limitFrameSize)
+    // 高亮当前血条采样点。（治疗阈值）
+    auto samplingPt = convertProportionPosToCvPoint(gameData.hpMpBarInfo.samplingPos, hpArea.cols, hpArea.rows);
+    cv::circle(hpArea, samplingPt, 4, cv::Scalar(0, 255, 0), cv::FILLED);
+
+    // 高亮当前血条采样点。（回城阈值）
+    auto proportionPos = gameData.hpMpBarInfo.samplingPos;
+    proportionPos.x = config.backHomeHpThreshold;
+    samplingPt = convertProportionPosToCvPoint(proportionPos, hpArea.cols, hpArea.rows);
+    cv::circle(hpArea, samplingPt, 4, cv::Scalar(0, 255, 0), cv::FILLED);
+
+    if (config.limitDebugWindowSize)
     {
-        assert(debugWindowMaxWidth > 0 && debugWindowMaxHeight > 0);
-        frame = limitImageSize(frame, debugWindowMaxWidth, debugWindowMaxHeight);
+        assert(config.debugWindowMaxWidth > 0 && config.debugWindowMaxHeight > 0);
+        frame = limitImageSize(frame, config.debugWindowMaxWidth, config.debugWindowMaxHeight);
     }
 
     cv::imshow(winName, frame);
@@ -122,6 +132,7 @@ void AssistProgram::stop()
     if (clickKeyWorkThread_.joinable())
         clickKeyWorkThread_.join();
 
+    activeThreads_.store(0);
     isRunning_.store(false);
 }
 
@@ -134,6 +145,7 @@ void AssistProgram::mainWork()
 {
     using namespace std::chrono;
 
+    // 获取帧
     auto getNewValidFrame = [this](NDIlib_recv_instance_t recv, uint32_t timeout) -> cv::Mat
     {
         auto startTime = high_resolution_clock::now();
@@ -142,8 +154,9 @@ void AssistProgram::mainWork()
         NDIlib_video_frame_v2_t videoFrame;
         while (!shouldClose_.load())
         {
+            // 如果在指定时间内未获得帧，将返回空帧。
             if (high_resolution_clock::now() - startTime >= timeoutMs)
-                return cv::Mat();
+                break;
 
             auto frameType = NDIlib_recv_capture_v3(recv, &videoFrame, nullptr, nullptr, 100);
             if (frameType == NDIlib_frame_type_video && videoFrame.p_data)
@@ -163,6 +176,7 @@ void AssistProgram::mainWork()
         return cv::Mat();
     };
 
+    // Debug使用
     size_t frameNum = 0;
     bool masterDebugWindowShowed = false;
     bool footmanDebugWindowShowed = false;
@@ -179,6 +193,7 @@ void AssistProgram::mainWork()
             printf("Try get frame...\n");
 
         cv::Mat masterFrame = getNewValidFrame(masterRecv_, config.frameGetterTimeout);
+        // 如果获得空帧，退出工作线程。（下同）
         if (masterFrame.empty())
         {
             if (config.outputLog)
@@ -199,14 +214,17 @@ void AssistProgram::mainWork()
         }
 
         if (config.outputLog)
-            printf("Get frame: %zu\n", frameNum++);
+            printf("Got frame: %zu\n", frameNum++);
 
         // Master
         {
             cv::Mat hpArea = getMatView(masterFrame, gameData.hpRect);
+            assert(!hpArea.empty());
+
             auto pos = convertProportionPosToCvPoint(gameData.hpMpBarInfo.samplingPos, hpArea.cols, hpArea.rows);
             auto color = convertCvVecToRgbColor(hpArea.at<cv::Vec3b>(pos));
 
+            // 若采样点颜色与血条底色相同则进行治疗。（下同）
             auto similarity = computeColorSimilarity(color, gameData.hpMpBarInfo.baseColor);
             if (similarity >= config.colorConfidence &&
                 (high_resolution_clock::now() - lastMasterTreatTime >= treatTimeInterval))
@@ -220,8 +238,7 @@ void AssistProgram::mainWork()
 
             if (config.showDebugWindow)
             {
-                showDebugWindow(masterFrame, "Master", gameData,
-                    config.limitDebugWindowSize, config.debugWindowMaxWidth, config.debugWindowMaxHeight);
+                showDebugWindow(masterFrame, "Master", gameData, config);
                 masterDebugWindowShowed = true;
             }
             else
@@ -237,6 +254,7 @@ void AssistProgram::mainWork()
         // Footman
         {
             cv::Mat hpArea = getMatView(footmanFrame, gameData.hpRect);
+            assert(!hpArea.empty());
 
             // 原采样点（治疗阈值）
             auto pos = convertProportionPosToCvPoint(gameData.hpMpBarInfo.samplingPos, hpArea.cols, hpArea.rows);
@@ -248,11 +266,12 @@ void AssistProgram::mainWork()
             auto color = convertCvVecToRgbColor(hpArea.at<cv::Vec3b>(pos));
             auto newColor = convertCvVecToRgbColor(hpArea.at<cv::Vec3b>(newPos));
 
+            // 若新采样点颜色与血条底色相同则进行回城，并退出工作线程。
             auto newSimilarity = computeColorSimilarity(newColor, gameData.hpMpBarInfo.baseColor);
             if (newSimilarity >= config.colorConfidence)
             {
                 if (config.outputLog)
-                    printf("Footman HP is low, back to home and exit thread.");
+                    printf("Footman HP is low, back to home and exit thread.\n");
 
                 hid::clickKey(footmanHid_, config.backHomeKey);
                 shouldClose_.store(true);
@@ -272,8 +291,7 @@ void AssistProgram::mainWork()
 
             if (config.showDebugWindow)
             {
-                showDebugWindow(footmanFrame, "Footman", gameData,
-                    config.limitDebugWindowSize, config.debugWindowMaxWidth, config.debugWindowMaxHeight);
+                showDebugWindow(footmanFrame, "Footman", gameData, config);
                 footmanDebugWindowShowed = true;
             }
             else
