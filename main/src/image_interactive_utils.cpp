@@ -18,6 +18,8 @@ cv::Point selectImagePoint(const cv::Mat& image, int originX, int originY, const
     cv::Point colorCircleCenter(image.cols - 40, 40);
     int colorCircleRadius = 30;
 
+    bool isFullScreenAndShowInfo = image.cols >= 1080 && image.rows >= 1080;
+
     while (!shouldClose)
     {
         cv::Mat img = image.clone();
@@ -35,13 +37,19 @@ cv::Point selectImagePoint(const cv::Mat& image, int originX, int originY, const
             static_cast<int>(color[1]),
             static_cast<int>(color[0])
         );
-        cv::putText(img, text, cv::Point(5, 40), cv::FONT_HERSHEY_SIMPLEX, 1.5, hintColor, 2);
-        cv::circle(img, colorCircleCenter, colorCircleRadius, color, cv::FILLED);
+        if (isFullScreenAndShowInfo)
+        {
+            cv::putText(img, text, cv::Point(5, 40), cv::FONT_HERSHEY_SIMPLEX, 1.5, hintColor, 2);
+            cv::circle(img, colorCircleCenter, colorCircleRadius, color, cv::FILLED);
+        }
 
         std::string winName ="Select Image Point";
-        cv::namedWindow(winName, cv::WINDOW_NORMAL);
-        cv::setWindowProperty(winName, cv::WND_PROP_ASPECT_RATIO, cv::WINDOW_KEEPRATIO);
-        cv::setWindowProperty(winName, cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
+        if (isFullScreenAndShowInfo)
+        {
+            cv::namedWindow(winName, cv::WINDOW_NORMAL);
+            cv::setWindowProperty(winName, cv::WND_PROP_ASPECT_RATIO, cv::WINDOW_KEEPRATIO);
+            cv::setWindowProperty(winName, cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
+        }
         cv::imshow(winName, img);
 
         int key = cv::waitKey(0);
@@ -67,8 +75,9 @@ cv::Point selectImagePoint(const cv::Mat& image, int originX, int originY, const
                 shouldClose = true;
                 break;
             case 0x0D:
-                printf("[%d, %d] (%lf, %lf)\n", x, y,
-                    static_cast<double>(x) / img.cols, static_cast<double>(y) / img.rows);
+                printf("[%d, %d] (%lf, %lf) RGB(%d, %d, %d)\n", x, y,
+                    static_cast<double>(x) / img.cols, static_cast<double>(y) / img.rows,
+                static_cast<int>(color[2]), static_cast<int>(color[1]), static_cast<int>(color[0]));
                 break;
             default:
                 break;
