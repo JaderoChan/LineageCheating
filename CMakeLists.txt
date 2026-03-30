@@ -7,7 +7,7 @@ if(NOT MSVC)
 endif()
 
 if(MSVC)
-    add_compile_options(/source-charset:utf-8 /execution-charset:utf-8)
+    add_compile_options(/utf-8)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 

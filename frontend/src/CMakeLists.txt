@@ -58,7 +58,7 @@ set_target_properties(
 
 # 如果为 MSVC 编译器，显式指定编码，防止乱码情况
 if (MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE /source-charset:utf-8 /execution-charset:utf-8)
+    target_compile_options(${PROJECT_NAME} PRIVATE /utf-8)
 endif()
 
 # 指定为 GUI 应用程序

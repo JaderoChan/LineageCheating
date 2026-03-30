@@ -183,6 +183,7 @@ void AssistProgram::mainWork()
         {
             if (config.outputLog)
                 printf("Failed to get frame.\n");
+
             shouldClose_.store(true);
             continue;
         }
@@ -192,6 +193,7 @@ void AssistProgram::mainWork()
         {
             if (config.outputLog)
                 printf("Failed to get frame.\n");
+
             shouldClose_.store(true);
             continue;
         }
@@ -199,6 +201,7 @@ void AssistProgram::mainWork()
         if (config.outputLog)
             printf("Get frame: %zu\n", frameNum++);
 
+        // Master
         {
             cv::Mat hpArea = getMatView(masterFrame, gameData.hpRect);
             auto pos = convertProportionPosToCvPoint(gameData.hpMpBarInfo.samplingPos, hpArea.cols, hpArea.rows);
@@ -211,7 +214,7 @@ void AssistProgram::mainWork()
                 if (config.outputLog)
                     printf("Click F6\n");
 
-                hid::clickKey(footmanHid_, VK_F6);
+                hid::clickKey(footmanHid_, config.masterTreatKey);
                 lastMasterTreatTime = high_resolution_clock::now();
             }
 
@@ -231,10 +234,30 @@ void AssistProgram::mainWork()
             }
         }
 
+        // Footman
         {
             cv::Mat hpArea = getMatView(footmanFrame, gameData.hpRect);
+
+            // 原采样点（治疗阈值）
             auto pos = convertProportionPosToCvPoint(gameData.hpMpBarInfo.samplingPos, hpArea.cols, hpArea.rows);
+            // 新采样点（回城阈值）
+            auto proportionPos = gameData.hpMpBarInfo.samplingPos;
+            proportionPos.x = config.backHomeHpThreshold;
+            auto newPos = convertProportionPosToCvPoint(proportionPos, hpArea.cols, hpArea.rows);
+
             auto color = convertCvVecToRgbColor(hpArea.at<cv::Vec3b>(pos));
+            auto newColor = convertCvVecToRgbColor(hpArea.at<cv::Vec3b>(newPos));
+
+            auto newSimilarity = computeColorSimilarity(newColor, gameData.hpMpBarInfo.baseColor);
+            if (newSimilarity >= config.colorConfidence)
+            {
+                if (config.outputLog)
+                    printf("Footman HP is low, back to home and exit thread.");
+
+                hid::clickKey(footmanHid_, config.backHomeKey);
+                shouldClose_.store(true);
+                continue;
+            }
 
             auto similarity = computeColorSimilarity(color, gameData.hpMpBarInfo.baseColor);
             if (similarity >= config.colorConfidence &&
@@ -243,7 +266,7 @@ void AssistProgram::mainWork()
                 if (config.outputLog)
                     printf("Click F5\n");
 
-                hid::clickKey(footmanHid_, VK_F5);
+                hid::clickKey(footmanHid_, config.footmanTreatKey);
                 lastFootmanTreatTime = high_resolution_clock::now();
             }
 
