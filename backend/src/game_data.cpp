@@ -32,12 +32,14 @@ GameData GameData::fromJson(const nlohmann::json& json)
     READ_PROPORTION_RECT_FIELD_FROM_JSON(result, chatRect, json);
 
     nlohmann::json hotkeyRectsObj = json.at("hotkeyRects");
-    READ_PROPORTION_RECT_FIELD_FROM_JSON(result.hotkeyRects, f4, hotkeyRectsObj);
     READ_PROPORTION_RECT_FIELD_FROM_JSON(result.hotkeyRects, f5, hotkeyRectsObj);
     READ_PROPORTION_RECT_FIELD_FROM_JSON(result.hotkeyRects, f6, hotkeyRectsObj);
     READ_PROPORTION_RECT_FIELD_FROM_JSON(result.hotkeyRects, f7, hotkeyRectsObj);
     READ_PROPORTION_RECT_FIELD_FROM_JSON(result.hotkeyRects, f8, hotkeyRectsObj);
     READ_PROPORTION_RECT_FIELD_FROM_JSON(result.hotkeyRects, f9, hotkeyRectsObj);
+    READ_PROPORTION_RECT_FIELD_FROM_JSON(result.hotkeyRects, f10, hotkeyRectsObj);
+    READ_PROPORTION_RECT_FIELD_FROM_JSON(result.hotkeyRects, f11, hotkeyRectsObj);
+    READ_PROPORTION_RECT_FIELD_FROM_JSON(result.hotkeyRects, f12, hotkeyRectsObj);
 
     nlohmann::json hpMpBarInfoObj = json.at("hpMpBarInfo");
     READ_PROPORTION_POS_FIELD_FROM_JSON(result.hpMpBarInfo, samplingPos, hpMpBarInfoObj);
@@ -77,12 +79,14 @@ nlohmann::json GameData::toJson() const
     WRITE_PROPORTION_RECT_FIELD_TO_JSON(*this, chatRect, j);
 
     nlohmann::json hotkeyRectsObj;
-    WRITE_PROPORTION_RECT_FIELD_TO_JSON(this->hotkeyRects, f4, hotkeyRectsObj);
     WRITE_PROPORTION_RECT_FIELD_TO_JSON(this->hotkeyRects, f5, hotkeyRectsObj);
     WRITE_PROPORTION_RECT_FIELD_TO_JSON(this->hotkeyRects, f6, hotkeyRectsObj);
     WRITE_PROPORTION_RECT_FIELD_TO_JSON(this->hotkeyRects, f7, hotkeyRectsObj);
     WRITE_PROPORTION_RECT_FIELD_TO_JSON(this->hotkeyRects, f8, hotkeyRectsObj);
     WRITE_PROPORTION_RECT_FIELD_TO_JSON(this->hotkeyRects, f9, hotkeyRectsObj);
+    WRITE_PROPORTION_RECT_FIELD_TO_JSON(this->hotkeyRects, f10, hotkeyRectsObj);
+    WRITE_PROPORTION_RECT_FIELD_TO_JSON(this->hotkeyRects, f11, hotkeyRectsObj);
+    WRITE_PROPORTION_RECT_FIELD_TO_JSON(this->hotkeyRects, f12, hotkeyRectsObj);
     j["hotkeyRects"] = hotkeyRectsObj;
 
     nlohmann::json hpMpBarInfoObj;

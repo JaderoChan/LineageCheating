@@ -25,12 +25,14 @@ struct GameData
 
     struct
     {
-        ProportionRect f4;
         ProportionRect f5;
         ProportionRect f6;
         ProportionRect f7;
         ProportionRect f8;
         ProportionRect f9;
+        ProportionRect f10;
+        ProportionRect f11;
+        ProportionRect f12;
     } hotkeyRects;
 
     struct
