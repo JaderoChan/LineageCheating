@@ -226,6 +226,12 @@ void AssistProgram::mainWork()
 
             // 若采样点颜色与血条底色相同则进行治疗。（下同）
             auto similarity = computeColorSimilarity(color, gameData.hpMpBarInfo.baseColor);
+            if (config.outputLog)
+            {
+                printf("Master HP bar color: RGB(%d, %d, %d), similarity: %lf\n",
+                    static_cast<int>(color.r), static_cast<int>(color.g), static_cast<int>(color.b), similarity);
+            }
+
             if (similarity >= config.colorConfidence &&
                 (high_resolution_clock::now() - lastMasterTreatTime >= treatTimeInterval))
             {
@@ -279,6 +285,12 @@ void AssistProgram::mainWork()
             }
 
             auto similarity = computeColorSimilarity(color, gameData.hpMpBarInfo.baseColor);
+            if (config.outputLog)
+            {
+                printf("Footman HP bar color: RGB(%d, %d, %d), similarity: %lf\n",
+                    static_cast<int>(color.r), static_cast<int>(color.g), static_cast<int>(color.b), similarity);
+            }
+
             if (similarity >= config.colorConfidence &&
                 (high_resolution_clock::now() - lastFootmanTreatTime >= treatTimeInterval))
             {
