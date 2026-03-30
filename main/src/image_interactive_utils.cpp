@@ -29,7 +29,7 @@ cv::Point selectImagePoint(const cv::Mat& image, int originX, int originY, const
             std::to_string(static_cast<double>(x) / img.cols),
             std::to_string(static_cast<double>(y) / img.rows)
         );
-        cv::putText(img, text, cv::Point(5, 20), cv::FONT_HERSHEY_SIMPLEX, 1.0, hintColor);
+        cv::putText(img, text, cv::Point(5, 40), cv::FONT_HERSHEY_SIMPLEX, 1.5, hintColor, 2);
 
         std::string winName ="Select Image Point";
         cv::namedWindow(winName, cv::WINDOW_NORMAL);
