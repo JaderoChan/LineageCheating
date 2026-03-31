@@ -1,5 +1,9 @@
 #pragma once
 
+#include <memory>
+
+#include <Processing.NDI.Lib.h>
+
 #include <assist_program.hpp>
 #include <game_data.hpp>
 #include <trwidgets/trwidget.h>
@@ -45,7 +49,7 @@ private:
     Ui::AssistProgramOperatePage ui;
     GameData gameData_;
     AssistProgramWorkConfig config_;
-    AssistProgram* assistProgram_ = nullptr;
+    std::unique_ptr<AssistProgram> assistProgram_;
 
     QPixmap redCirclePixmap_;
     QPixmap greenCirclePixmap_;
@@ -55,4 +59,8 @@ private:
     bool masterNdiConnected_ = false;
     bool footmanNdiConnected_ = false;
     bool footmanHidConnected_ = false;
+
+    NDIlib_recv_instance_t masterRecv_ = nullptr;
+    NDIlib_recv_instance_t footmanRecv_ = nullptr;
+    hid::HID hid_ = nullptr;
 };
