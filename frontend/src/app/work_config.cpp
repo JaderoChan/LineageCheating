@@ -6,6 +6,7 @@ WorkConfig WorkConfig::fromJson(const nlohmann::json& json)
 {
     WorkConfig result;
 
+    result.name = QString::fromStdString(json.at("name"));
     result.type = static_cast<WorkType>(json.at("type"));
 
     result.masterNdiSourceName = QString::fromStdString(json.at("masterNdiSourceName"));
@@ -36,6 +37,7 @@ nlohmann::json WorkConfig::toJson() const
 {
     nlohmann::json j;
 
+    j["name"] = name.toStdString();
     j["type"] = type;
 
     j["masterNdiSourceName"] = masterNdiSourceName.toStdString();

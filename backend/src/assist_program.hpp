@@ -18,11 +18,11 @@ public:
         const GameData& gameData, const AssistProgramConfig& config);
     ~AssistProgram();
 
-    void updateGameData(const GameData& gameData);
-    void updateConfig(const AssistProgramConfig& config);
-
     GameData getGameData() const;
+    void setGameData(const GameData& gameData);
+
     AssistProgramConfig getConfig() const;
+    void setConfig(const AssistProgramConfig& config);
 
     void setClickKeyEnable(bool enable);
     bool isClickKeyEnabled() const;

@@ -62,28 +62,28 @@ AssistProgram::~AssistProgram()
     stop();
 }
 
-void AssistProgram::updateGameData(const GameData& gameData)
-{
-    std::lock_guard<std::mutex> locker(gameDataMtx_);
-    gameData_ = gameData;
-}
-
-void AssistProgram::updateConfig(const AssistProgramConfig& config)
-{
-    std::lock_guard<std::mutex> locker(configMtx_);
-    config_ = config;
-}
-
 GameData AssistProgram::getGameData() const
 {
     std::lock_guard<std::mutex> locker(gameDataMtx_);
     return gameData_;
 }
 
+void AssistProgram::setGameData(const GameData& gameData)
+{
+    std::lock_guard<std::mutex> locker(gameDataMtx_);
+    gameData_ = gameData;
+}
+
 AssistProgramConfig AssistProgram::getConfig() const
 {
     std::lock_guard<std::mutex> locker(configMtx_);
     return config_;
+}
+
+void AssistProgram::setConfig(const AssistProgramConfig& config)
+{
+    std::lock_guard<std::mutex> locker(configMtx_);
+    config_ = config;
 }
 
 void AssistProgram::setClickKeyEnable(bool enable)
