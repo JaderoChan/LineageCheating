@@ -32,19 +32,29 @@ public:
 
     void run();
     void stop();
-    void isRunning() const;
-
-    void configureMasterDevice();
-    void configureFootmanDevice();
+    bool isRunning() const;
 
 protected:
     void updateText() override;
 
+    void onNdiConnectButtonClicked(HostFlag flag);
     void onSearchNdiSourceButtonClicked(HostFlag flag);
+    void onHidConnectButtonClicked();
 
 private:
+    void updateStateIconAndText();
+
     Ui::AssistProgramOperatePage ui;
     GameData gameData_;
     AssistProgramWorkConfig config_;
     AssistProgram* assistProgram_ = nullptr;
+
+    QPixmap redCirclePixmap_;
+    QPixmap greenCirclePixmap_;
+    QPixmap alertPixmap_;
+    QPixmap passPixmap_;
+
+    bool masterNdiConnected_ = false;
+    bool footmanNdiConnected_ = false;
+    bool footmanHidConnected_ = false;
 };

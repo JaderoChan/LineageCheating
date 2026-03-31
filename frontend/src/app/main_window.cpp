@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget* parent)
 {
     ui.setupUi(this);
 
-    // 初始化 `TabWidget` 的标签页增加按钮。
+    // 初始化 TabWidget 的标签页增加按钮。
     tabWidgetAddBtn_->setIcon(QIcon(":/icons/add.png"));
     tabWidgetAddBtn_->setFlat(true);
     tabWidgetAddBtn_->setIconSize(QSize(24, 24));
@@ -25,9 +25,9 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui.tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::onTabCloseRequested);
 
     // 根据应用设置读取已有页面。
-    // TODO: Assign `ui.tabWidget` and `configAndPageMap_`.
+    // TODO: Assign ui.tabWidget and configAndPageMap_.
 
-    // 根据 `TabWidget` 的页面数量设置当前窗口（如果数量为 `0` 则显示启动界面）。
+    // 根据 TabWidget 的页面数量设置当前窗口（如果数量为 0 则显示启动界面）。
     ui.stackedWidget->setCurrentWidget(ui.tabWidget->count() == 0 ? ui.introPage : ui.tabWidgetPage);
 
     ui.introWidget->installEventFilter(this);
@@ -39,6 +39,9 @@ MainWindow::MainWindow(QWidget* parent)
 MainWindow::~MainWindow()
 {
     // TODO: Save settings.
+    // Cleanup work thread
+    for (auto it = pageAndConfigMap_.begin(); it != pageAndConfigMap_.end(); ++it)
+        cleanupWorkPage(it.key());
 }
 
 void MainWindow::addTabPage(bool jumpTo)
@@ -76,9 +79,7 @@ void MainWindow::addTabPage(bool jumpTo)
 
 void MainWindow::removeTabPage(int index)
 {
-    auto page = qobject_cast<AssistProgramOperatePage*>(ui.tabWidget->widget(index));
-    if (!page)
-        return;
+    auto page = ui.tabWidget->widget(index);
 
     // 先从界面中移除标签页。
     ui.tabWidget->removeTab(index);
@@ -88,26 +89,25 @@ void MainWindow::removeTabPage(int index)
     // 删除键值对
     pageAndConfigMap_.remove(page);
 
-    // 执行标签页所属工作的退出工作。
-    QThread* cleanupThread = QThread::create([page]() { page->stop(); });
-    connect(cleanupThread, &QThread::finished, cleanupThread, [page, cleanupThread]
-    {
-        page->deleteLater();
-        cleanupThread->deleteLater();
-    });
-
-    cleanupThread->start();
+    // 退出并删除工作线程及其页面。
+    cleanupWorkPage(page);
 }
 
 void MainWindow::updateText()
 {
     setWindowTitle(EASYTR("Lineage Cheating Tool"));
 
-    // Actions
+    // Tools menu
+    ui.menuTools->setTitle(EASYTR("Tools"));
     ui.actionSearchNdiSources->setText(EASYTR("Search NDI Sources"));
     ui.actionSelectImagePoint->setText(EASYTR("Select Image Point"));
     ui.actionSelectScreenColor->setText(EASYTR("Select Screen Color"));
     ui.actionTestHid->setText(EASYTR("Test HID"));
+    ui.actionSettings->setText(EASYTR("Settings"));
+
+    // Help menu
+    ui.menuHelp->setTitle(EASYTR("Help"));
+    ui.actionAbout->setText(EASYTR("About"));
 
     ui.introTextLabel->setText(EASYTR("Current no work be set, please double click page to add a new work."));
 }
@@ -150,6 +150,23 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event)
 void MainWindow::onTabCloseRequested(int index)
 {
     removeTabPage(index);
+}
+
+void MainWindow::cleanupWorkPage(QWidget* wgt)
+{
+    auto page = qobject_cast<AssistProgramOperatePage*>(wgt);
+    if (!page)
+        return;
+
+    // 执行标签页所属工作的退出工作。
+    QThread* cleanupThread = QThread::create([page]() { page->stop(); });
+    connect(cleanupThread, &QThread::finished, cleanupThread, [page, cleanupThread]
+    {
+        page->deleteLater();
+        cleanupThread->deleteLater();
+    });
+
+    cleanupThread->start();
 }
 
 void MainWindow::startRenameTab(int index)

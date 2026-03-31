@@ -1,24 +1,33 @@
 #include "assist_program_operate_page.h"
 
+#include <qvalidator.h>
+
 AssistProgramOperatePage::AssistProgramOperatePage(
     const GameData& gameData, const AssistProgramWorkConfig& config, QWidget* parent)
-    : TrWidget(parent), gameData_(gameData), config_(config)
+    : TrWidget(parent), gameData_(gameData), config_(config),
+    redCirclePixmap_(":/icons/red_circle.png"), greenCirclePixmap_(":/icons/green_circle.png"),
+    alertPixmap_(":/icons/alert.png"), passPixmap_(":/icons/pass.png")
 {
     ui.setupUi(this);
 
-    QPixmap redCircle = QPixmap(":/icons/red_circle.png");
-    ui.runningStateIcon->setPixmap(redCircle);
-    QPixmap alert = QPixmap(":/icons/alert.png");
-    ui.masterNdiStateIcon->setPixmap(alert);
-    ui.footmanNdiStateIcon->setPixmap(alert);
-    ui.footmanHidStateIcon->setPixmap(alert);
-
-    ui.masterNdiSourceNameLabel->setText(config_.masterNdiSourceName);
-    ui.footmanNdiSourceNameLabel->setText(config_.footmanNdiSourceName);
+    // 初始化文本
+    ui.masterNdiSourceNameInputLineEdit->setText(config_.masterNdiSourceName);
+    ui.footmanNdiSourceNameInputLineEdit->setText(config_.footmanNdiSourceName);
     ui.footmanHidVidInputLineEdit->setText(QString::number(config_.footmanHidInfo.vid));
     ui.footmanHidPidInputLineEdit->setText(QString::number(config_.footmanHidInfo.pid));
 
+    // 设置 VID 和 PID 的输入验证器，使其只接受正整数。
+
+    // 信号槽
+    connect(ui.masterNdiConnectButton, &QPushButton::clicked,
+        this, [this]() { onNdiConnectButtonClicked(Master); });
+    connect(ui.footmanNdiConnectButton, &QPushButton::clicked,
+        this, [this]() { onNdiConnectButtonClicked(Footman); });
+    connect(ui.footmanHidConnectButton, &QPushButton::clicked,
+        this, &AssistProgramOperatePage::onHidConnectButtonClicked);
+
     updateText();
+    updateStateIconAndText();
 }
 
 AssistProgramOperatePage::~AssistProgramOperatePage()
@@ -47,19 +56,23 @@ void AssistProgramOperatePage::setAssistProgramWorkConfig(const AssistProgramWor
 }
 
 void AssistProgramOperatePage::run()
-{}
+{
+    if (isRunning())
+        return;
+}
 
 void AssistProgramOperatePage::stop()
-{}
+{
+    if (!isRunning())
+        return;
+}
 
-void AssistProgramOperatePage::isRunning() const
-{}
-
-void AssistProgramOperatePage::configureMasterDevice()
-{}
-
-void AssistProgramOperatePage::configureFootmanDevice()
-{}
+bool AssistProgramOperatePage::isRunning() const
+{
+    if (assistProgram_)
+        return assistProgram_->isRunning();
+    return false;
+}
 
 void AssistProgramOperatePage::updateText()
 {
@@ -89,5 +102,29 @@ void AssistProgramOperatePage::updateText()
     ui.stopButton->setText(EASYTR("Stop Run"));
 }
 
+void AssistProgramOperatePage::onNdiConnectButtonClicked(HostFlag flag)
+{}
+
 void AssistProgramOperatePage::onSearchNdiSourceButtonClicked(HostFlag flag)
 {}
+
+void AssistProgramOperatePage::onHidConnectButtonClicked()
+{}
+
+void AssistProgramOperatePage::updateStateIconAndText()
+{
+    if (isRunning())
+    {
+        ui.runningStateIcon->setPixmap(greenCirclePixmap_);
+        ui.runningStateTextLabel->setText(EASYTR("(Is Running)"));
+    }
+    else
+    {
+        ui.runningStateIcon->setPixmap(redCirclePixmap_);
+        ui.runningStateTextLabel->setText(EASYTR("(Not Running)"));
+    }
+
+    ui.masterNdiStateIcon->setPixmap(masterNdiConnected_ ? passPixmap_ : alertPixmap_);
+    ui.footmanNdiStateIcon->setPixmap(footmanNdiConnected_ ? passPixmap_ : alertPixmap_);
+    ui.footmanHidStateIcon->setPixmap(footmanHidConnected_ ? passPixmap_ : alertPixmap_);
+}

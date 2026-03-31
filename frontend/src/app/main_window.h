@@ -28,6 +28,7 @@ protected:
     void onTabCloseRequested(int index);
 
 private:
+    void cleanupWorkPage(QWidget* wgt);
     void startRenameTab(int index);
 
     Ui::MainWindow ui;
