@@ -17,6 +17,10 @@ AssistProgramOperatePage::AssistProgramOperatePage(
     ui.footmanHidPidInputLineEdit->setText(QString::number(config_.footmanHidInfo.pid));
 
     // 设置 VID 和 PID 的输入验证器，使其只接受正整数。
+    auto vidValidator = new QIntValidator(1, 65535, this);
+    auto pidValidator = new QIntValidator(1, 65535, this);
+    ui.footmanHidVidInputLineEdit->setValidator(vidValidator);
+    ui.footmanHidPidInputLineEdit->setValidator(pidValidator);
 
     // 信号槽
     connect(ui.masterNdiConnectButton, &QPushButton::clicked,
@@ -124,7 +128,16 @@ void AssistProgramOperatePage::updateStateIconAndText()
         ui.runningStateTextLabel->setText(EASYTR("(Not Running)"));
     }
 
+    // 设置连接状态图标。
     ui.masterNdiStateIcon->setPixmap(masterNdiConnected_ ? passPixmap_ : alertPixmap_);
     ui.footmanNdiStateIcon->setPixmap(footmanNdiConnected_ ? passPixmap_ : alertPixmap_);
     ui.footmanHidStateIcon->setPixmap(footmanHidConnected_ ? passPixmap_ : alertPixmap_);
+
+    // 设置连接按钮文本。
+    ui.masterNdiConnectButton->setText(
+        masterNdiConnected_ ? EASYTR("Disconnect NDI Source") : EASYTR("Connect NDI Source"));
+    ui.footmanNdiConnectButton->setText(
+        footmanNdiConnected_ ? EASYTR("Disconnect NDI Source") : EASYTR("Connect NDI Source"));
+    ui.footmanHidConnectButton->setText(
+        footmanHidConnected_ ? EASYTR("Disconnect HID Device") : EASYTR("Connect HID Device"));
 }
