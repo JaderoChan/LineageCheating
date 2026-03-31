@@ -1,6 +1,8 @@
 #include "main_window.h"
 
+#include <qlineedit.h>
 #include <qthread.h>
+#include <qtabbar.h>
 
 #include "work_config.h"
 
@@ -15,9 +17,11 @@ MainWindow::MainWindow(QWidget* parent)
     tabWidgetAddBtn_->setIconSize(QSize(24, 24));
     ui.tabWidget->setCornerWidget(tabWidgetAddBtn_);
 
+    connect(tabWidgetAddBtn_, &QPushButton::clicked, this, [this]() { addWorkOperatePage(false); });
+
     // 标签页的关闭
     ui.tabWidget->setTabsClosable(true);
-    connect(ui.tabWidget, QTabWidget::tabCloseRequested, this, &MainWindow::onTabCloseRequested);
+    connect(ui.tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::onTabCloseRequested);
 
     // 根据应用设置读取已有页面。
     // TODO: Assign `ui.tabWidget`.
@@ -26,6 +30,7 @@ MainWindow::MainWindow(QWidget* parent)
     ui.stackedWidget->setCurrentWidget(ui.tabWidget->count() == 0 ? ui.introPage : ui.tabWidgetPage);
 
     ui.introWidget->installEventFilter(this);
+    ui.tabWidget->tabBar()->installEventFilter(this);
 
     updateText();
 }
@@ -37,6 +42,14 @@ void MainWindow::addWorkOperatePage(WorkOperatePage* page, bool jumpTo)
         ui.stackedWidget->setCurrentWidget(ui.tabWidgetPage);
     if (jumpTo)
         ui.tabWidget->setCurrentIndex(index);
+}
+
+void MainWindow::addWorkOperatePage(bool jumpTo)
+{
+    WorkConfig config;
+    config.name = EASYTR("New Work");
+    auto page = new WorkOperatePage(config);
+    addWorkOperatePage(page, jumpTo);
 }
 
 void MainWindow::removeWorkOperatePage(int index)
@@ -52,7 +65,7 @@ void MainWindow::removeWorkOperatePage(int index)
 
     // 执行标签页所属工作的退出工作。
     QThread* cleanupThread = QThread::create([page]() { page->stop(); });
-    connect(cleanupThread, &QThread::finished, this, [page, cleanupThread]
+    connect(cleanupThread, &QThread::finished, cleanupThread, [page, cleanupThread]
     {
         page->deleteLater();
         cleanupThread->deleteLater();
@@ -87,21 +100,63 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event)
         {
             case QEvent::MouseButtonDblClick:
             {
-                WorkConfig config;
-                config.name = EASYTR("New work");
-                auto page = new WorkOperatePage(config, this);
-                addWorkOperatePage(page, true);
+                addWorkOperatePage(true);
                 return true;
             }
             default:
                 break;
         }
     }
+    else if (obj == ui.tabWidget->tabBar())
+    {
+        switch (event->type())
+        {
+            case QEvent::MouseButtonDblClick:
+            {
+                auto mouseEvent = static_cast<QMouseEvent*>(event);
+                int index = ui.tabWidget->tabBar()->tabAt(mouseEvent->pos());
+                if (index != -1)
+                    startRenameTab(index);
+            }
+            default:
+                break;
+        }
+    }
 
-    return false;
+    return TrMainWindow::eventFilter(obj, event);
 }
 
 void MainWindow::onTabCloseRequested(int index)
 {
     removeWorkOperatePage(index);
+}
+
+void MainWindow::startRenameTab(int index)
+{
+    QTabBar* tabBar = ui.tabWidget->tabBar();
+    QRect rect = tabBar->tabRect(index);
+
+    auto editor = new QLineEdit(tabBar);
+    editor->setText(ui.tabWidget->tabText(index));
+    editor->setGeometry(rect);
+    editor->selectAll();
+    editor->setFocus();
+    editor->show();
+
+    connect(editor, &QLineEdit::editingFinished, this, [this, editor, index]()
+    {
+        QString newName = editor->text().trimmed();
+        if (!newName.isEmpty())
+        {
+            ui.tabWidget->setTabText(index, newName);
+            auto page = qobject_cast<WorkOperatePage*>(ui.tabWidget->widget(index));
+            if (page)
+            {
+                WorkConfig config = page->getWorkConfig();
+                config.name = newName;
+                page->setWorkConfig(config);
+            }
+        }
+        editor->deleteLater();
+    });
 }

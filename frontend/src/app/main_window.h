@@ -17,6 +17,7 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
 
     void addWorkOperatePage(WorkOperatePage* page, bool jumpTo);
+    void addWorkOperatePage(bool jumpTo);
     void removeWorkOperatePage(int index);
     void removeWorkOperatePage(WorkOperatePage* page);
 
@@ -27,6 +28,8 @@ protected:
     void onTabCloseRequested(int index);
 
 private:
+    void startRenameTab(int index);
+
     Ui::MainWindow ui;
     QPushButton* tabWidgetAddBtn_;
 };

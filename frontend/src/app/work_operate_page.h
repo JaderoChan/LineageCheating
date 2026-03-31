@@ -9,6 +9,8 @@
 
 class WorkOperatePage : public TrWidget
 {
+    Q_OBJECT
+
 public:
     explicit WorkOperatePage(const WorkConfig& config, QWidget* parent = nullptr);
     ~WorkOperatePage();
