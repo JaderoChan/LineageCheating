@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Processing.NDI.Lib.h>
-
 #include <assist_program.hpp>
 #include <game_data.hpp>
 #include <trwidgets/trwidget.h>

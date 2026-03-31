@@ -13,5 +13,6 @@
         <file>icons/alert.png</file>
         <file>icons/green_circle.png</file>
         <file>icons/red_circle.png</file>
+        <file>icons/loading.gif</file>
     </qresource>
 </RCC>

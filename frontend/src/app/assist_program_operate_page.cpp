@@ -2,6 +2,10 @@
 
 #include <qvalidator.h>
 
+#include <Processing.NDI.Lib.h>
+
+#include "search_ndi_sources_dialog.h"
+
 AssistProgramOperatePage::AssistProgramOperatePage(
     const GameData& gameData, const AssistProgramWorkConfig& config, QWidget* parent)
     : TrWidget(parent), gameData_(gameData), config_(config),
@@ -23,6 +27,10 @@ AssistProgramOperatePage::AssistProgramOperatePage(
     ui.footmanHidPidInputLineEdit->setValidator(pidValidator);
 
     // 信号槽
+    connect(ui.masterSearchNdiSourceButton, &QPushButton::clicked,
+        this, [this]() { onSearchNdiSourceButtonClicked(Master); });
+    connect(ui.footmanSearchNdiSourceButton, &QPushButton::clicked,
+        this, [this]() { onSearchNdiSourceButtonClicked(Footman); });
     connect(ui.masterNdiConnectButton, &QPushButton::clicked,
         this, [this]() { onNdiConnectButtonClicked(Master); });
     connect(ui.footmanNdiConnectButton, &QPushButton::clicked,
@@ -88,12 +96,14 @@ void AssistProgramOperatePage::updateText()
     // Master Host Group Box
     ui.masterConfigureGroupBox->setTitle(EASYTR("Master Host"));
     ui.masterNdiTextLabel->setText(EASYTR("NDI Source"));
+    ui.masterNdiSourceNameInputLineEdit->setPlaceholderText(EASYTR("Master NDI Source Name"));
     ui.masterSearchNdiSourceButton->setToolTip(EASYTR("Search and select NDI source"));
     ui.masterNdiConnectButton->setText(EASYTR("Connect NDI Source"));
 
     // Footman Host Group Box
     ui.footmanConfigureGroupBox->setTitle(EASYTR("Footman Host"));
     ui.footmanNdiTextLabel->setText(EASYTR("NDI Source"));
+    ui.footmanNdiSourceNameInputLineEdit->setPlaceholderText(EASYTR("Footman NDI Source Name"));
     ui.footmanSearchNdiSourceButton->setToolTip(EASYTR("Search and select NDI source"));
     ui.footmanNdiConnectButton->setText(EASYTR("Connect NDI Source"));
     ui.footmanHidTextLabel->setText(EASYTR("HID"));
@@ -110,7 +120,19 @@ void AssistProgramOperatePage::onNdiConnectButtonClicked(HostFlag flag)
 {}
 
 void AssistProgramOperatePage::onSearchNdiSourceButtonClicked(HostFlag flag)
-{}
+{
+    SearchNdiSourcesDialog dlg;
+    QVariant source = dlg.getSelectedNdiSource();
+    if (!source.isNull())
+    {
+        switch (flag)
+        {
+            case Master:    config_.masterNdiSourceName = source.toString(); break;
+            case Footman:   config_.footmanNdiSourceName = source.toString(); break;
+            default:        break;
+        }
+    }
+}
 
 void AssistProgramOperatePage::onHidConnectButtonClicked()
 {}

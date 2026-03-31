@@ -27,6 +27,8 @@ protected:
 
     void onTabCloseRequested(int index);
 
+    void onSearchNdiActivated();
+
 private:
     void cleanupWorkPage(QWidget* wgt);
     void startRenameTab(int index);

@@ -7,6 +7,7 @@
 #include <utils/debug_output.h>
 
 #include "config.h"
+#include "search_ndi_sources_dialog.h"
 
 MainWindow::MainWindow(QWidget* parent)
     : TrMainWindow(parent), tabWidgetAddBtn_(new QPushButton(this))
@@ -32,6 +33,9 @@ MainWindow::MainWindow(QWidget* parent)
 
     ui.introWidget->installEventFilter(this);
     ui.tabWidget->tabBar()->installEventFilter(this);
+
+    // Action 信号槽
+    connect(ui.actionSearchNdiSources, &QAction::triggered, this, &MainWindow::onSearchNdiActivated);
 
     updateText();
 }
@@ -63,8 +67,6 @@ void MainWindow::addTabPage(bool jumpTo)
 
     AssistProgramWorkConfig assistProgramWorkConfig;
     assistProgramWorkConfig.footmanHidInfo = {1, 1};
-    assistProgramWorkConfig.masterNdiSourceName = "Master NDI Source";
-    assistProgramWorkConfig.footmanNdiSourceName = "Footman NDI Source";
 
     auto page = new AssistProgramOperatePage(gameData, assistProgramWorkConfig);
 
@@ -150,6 +152,12 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event)
 void MainWindow::onTabCloseRequested(int index)
 {
     removeTabPage(index);
+}
+
+void MainWindow::onSearchNdiActivated()
+{
+    SearchNdiSourcesDialog dlg;
+    QVariant source = dlg.getSelectedNdiSource();
 }
 
 void MainWindow::cleanupWorkPage(QWidget* wgt)

@@ -1,8 +1,10 @@
 #include <qapplication.h>
 
+#include <Processing.NDI.Lib.h>
 #include <easy_translate.hpp>
 
 #include <config.h>
+#include <utils/debug_output.h>
 
 #include "logo_icon.h"
 #include "main_window.h"
@@ -24,6 +26,12 @@ int main(int argc, char* argv[])
         setLanguage(settings.language);
     }
 
+    if (!NDIlib_initialize())
+    {
+        debugOut(qCritical(), "Failed to initialize NDI library.");
+        return -1;
+    }
+
     MainWindow wgt;
     wgt.show();
 
@@ -31,6 +39,8 @@ int main(int argc, char* argv[])
 
     // 更新翻译文件（实际上由编译选项 `UPDATE_TRANSLATIONS_FILES` 决定是否真正更新）
     easytr::updateTranslationsFiles();
+
+    NDIlib_destroy();
 
     return ret;
 }
