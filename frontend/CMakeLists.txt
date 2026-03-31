@@ -40,6 +40,9 @@ set(APP_AUTHOR "頔珞 JaderoChan")
 set(APP_CONTACT_EMAIL "c_dl_cn@outlook.com")
 set(APP_COPYRIGHT_TEXT "Copyright (c) 2026 JaderoChan")
 
+set(DEFAULT_GAME_DATA_FILEPATH "./data/game_data.json")
+set(DEFAULT_WORK_CONFIG_DIR "./configs")
+
 ###############
 # 定义常用路径 #
 ###############

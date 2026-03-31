@@ -4,7 +4,9 @@
 #include <qthread.h>
 #include <qtabbar.h>
 
-#include "work_config.h"
+#include <utils/debug_output.h>
+
+#include "config.h"
 
 MainWindow::MainWindow(QWidget* parent)
     : TrMainWindow(parent), tabWidgetAddBtn_(new QPushButton(this))
@@ -16,14 +18,14 @@ MainWindow::MainWindow(QWidget* parent)
     tabWidgetAddBtn_->setFlat(true);
     tabWidgetAddBtn_->setIconSize(QSize(24, 24));
     ui.tabWidget->setCornerWidget(tabWidgetAddBtn_);
-    connect(tabWidgetAddBtn_, &QPushButton::clicked, this, [this]() { addWorkOperatePage(true); });
+    connect(tabWidgetAddBtn_, &QPushButton::clicked, this, [this]() { addTabPage(true); });
 
     // 标签页的关闭
     ui.tabWidget->setTabsClosable(true);
     connect(ui.tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::onTabCloseRequested);
 
     // 根据应用设置读取已有页面。
-    // TODO: Assign `ui.tabWidget`.
+    // TODO: Assign `ui.tabWidget` and `configAndPageMap_`.
 
     // 根据 `TabWidget` 的页面数量设置当前窗口（如果数量为 `0` 则显示启动界面）。
     ui.stackedWidget->setCurrentWidget(ui.tabWidget->count() == 0 ? ui.introPage : ui.tabWidgetPage);
@@ -39,26 +41,42 @@ MainWindow::~MainWindow()
     // TODO: Save settings.
 }
 
-void MainWindow::addWorkOperatePage(WorkOperatePage* page, bool jumpTo)
+void MainWindow::addTabPage(bool jumpTo)
 {
-    int index = ui.tabWidget->addTab(page, page->getWorkConfig().name);
+    // Changed in future.
+
+    WorkConfig config;
+    config.type = WT_ASSIST;
+    config.name = EASYTR("New Work");
+    config.gameDataPath = DEFAULT_GAME_DATA_FILEPATH;
+
+    GameData gameData;
+    try { gameData = GameData::fromFile(config.gameDataPath.toStdString()); }
+    catch (const std::exception& e)
+    {
+        debugOut(qWarning(), "Failed to open/parse Game Data: %1", e.what());
+        return;
+    }
+
+    AssistProgramWorkConfig assistProgramWorkConfig;
+    assistProgramWorkConfig.footmanHidInfo = {1, 1};
+    assistProgramWorkConfig.masterNdiSourceName = "Master NDI Source";
+    assistProgramWorkConfig.footmanNdiSourceName = "Footman NDI Source";
+
+    auto page = new AssistProgramOperatePage(gameData, assistProgramWorkConfig);
+
+    int index = ui.tabWidget->addTab(page, config.name);
     if (ui.stackedWidget->currentWidget() != ui.tabWidgetPage)
         ui.stackedWidget->setCurrentWidget(ui.tabWidgetPage);
     if (jumpTo)
         ui.tabWidget->setCurrentIndex(index);
+
+    pageAndConfigMap_.insert(page, config);
 }
 
-void MainWindow::addWorkOperatePage(bool jumpTo)
+void MainWindow::removeTabPage(int index)
 {
-    WorkConfig config;
-    config.name = EASYTR("New Work");
-    auto page = new WorkOperatePage(config);
-    addWorkOperatePage(page, jumpTo);
-}
-
-void MainWindow::removeWorkOperatePage(int index)
-{
-    auto page = qobject_cast<WorkOperatePage*>(ui.tabWidget->widget(index));
+    auto page = qobject_cast<AssistProgramOperatePage*>(ui.tabWidget->widget(index));
     if (!page)
         return;
 
@@ -66,6 +84,9 @@ void MainWindow::removeWorkOperatePage(int index)
     ui.tabWidget->removeTab(index);
     if (ui.tabWidget->count() == 0)
         ui.stackedWidget->setCurrentWidget(ui.introPage);
+
+    // 删除键值对
+    pageAndConfigMap_.remove(page);
 
     // 执行标签页所属工作的退出工作。
     QThread* cleanupThread = QThread::create([page]() { page->stop(); });
@@ -78,15 +99,10 @@ void MainWindow::removeWorkOperatePage(int index)
     cleanupThread->start();
 }
 
-void MainWindow::removeWorkOperatePage(WorkOperatePage* page)
-{
-    int index = ui.tabWidget->indexOf(page);
-    if (index != -1)
-        removeWorkOperatePage(index);
-}
-
 void MainWindow::updateText()
 {
+    setWindowTitle(EASYTR("Lineage Cheating Tool"));
+
     // Actions
     ui.actionSearchNdiSources->setText(EASYTR("Search NDI Sources"));
     ui.actionSelectImagePoint->setText(EASYTR("Select Image Point"));
@@ -104,7 +120,7 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event)
         {
             case QEvent::MouseButtonDblClick:
             {
-                addWorkOperatePage(true);
+                addTabPage(true);
                 return true;
             }
             default:
@@ -121,6 +137,7 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event)
                 int index = ui.tabWidget->tabBar()->tabAt(mouseEvent->pos());
                 if (index != -1)
                     startRenameTab(index);
+                return true;
             }
             default:
                 break;
@@ -132,11 +149,13 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event)
 
 void MainWindow::onTabCloseRequested(int index)
 {
-    removeWorkOperatePage(index);
+    removeTabPage(index);
 }
 
 void MainWindow::startRenameTab(int index)
 {
+    auto page = qobject_cast<AssistProgramOperatePage*>(ui.tabWidget->widget(index));
+
     QTabBar* tabBar = ui.tabWidget->tabBar();
     QRect rect = tabBar->tabRect(index);
 
@@ -147,18 +166,20 @@ void MainWindow::startRenameTab(int index)
     editor->setFocus();
     editor->show();
 
-    connect(editor, &QLineEdit::editingFinished, this, [this, editor, index]()
+    connect(editor, &QLineEdit::editingFinished, this, [this, editor, page]()
     {
         QString newName = editor->text().trimmed();
         if (!newName.isEmpty())
         {
-            ui.tabWidget->setTabText(index, newName);
-            auto page = qobject_cast<WorkOperatePage*>(ui.tabWidget->widget(index));
+            int index = ui.tabWidget->indexOf(page);
+            if (index != -1)
+                ui.tabWidget->setTabText(index, newName);
+
             if (page)
             {
-                WorkConfig config = page->getWorkConfig();
+                WorkConfig config = pageAndConfigMap_[page];
                 config.name = newName;
-                page->setWorkConfig(config);
+                pageAndConfigMap_[page] = config;
             }
         }
         editor->deleteLater();

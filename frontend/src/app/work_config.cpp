@@ -9,17 +9,6 @@ WorkConfig WorkConfig::fromJson(const nlohmann::json& json)
     result.name = QString::fromStdString(json.at("name"));
     result.type = static_cast<WorkType>(json.at("type"));
 
-    result.masterNdiSourceName = QString::fromStdString(json.at("masterNdiSourceName"));
-    result.footmanNdiSourceName = QString::fromStdString(json.at("footmanNdiSourceName"));
-
-    nlohmann::json masterHidInfoObj = json.at("masterHidInfo");
-    result.masterHidInfo.vid = masterHidInfoObj["vid"];
-    result.masterHidInfo.pid = masterHidInfoObj["pid"];
-
-    nlohmann::json footmanHidInfoObj = json.at("footmanHidInfo");
-    result.footmanHidInfo.vid = footmanHidInfoObj["vid"];
-    result.footmanHidInfo.pid = footmanHidInfoObj["pid"];
-
     result.gameDataPath = QString::fromStdString(json.at("gameDataPath"));
     result.configPath = QString::fromStdString(json.at("configPath"));
 
@@ -40,19 +29,6 @@ nlohmann::json WorkConfig::toJson() const
     j["name"] = name.toStdString();
     j["type"] = type;
 
-    j["masterNdiSourceName"] = masterNdiSourceName.toStdString();
-    j["footmanNdiSourceName"] = footmanNdiSourceName.toStdString();
-
-    nlohmann::json masterHidInfoObj;
-    masterHidInfoObj["vid"] = masterHidInfo.vid;
-    masterHidInfoObj["pid"] = masterHidInfo.pid;
-    j["masterHidInfo"] = masterHidInfoObj;
-
-    nlohmann::json footmanHidInfoObj;
-    footmanHidInfoObj["vid"] = footmanHidInfo.vid;
-    footmanHidInfoObj["pid"] = footmanHidInfo.pid;
-    j["footmanHidInfo"] = footmanHidInfoObj;
-
     j["gameDataPath"] = gameDataPath.toStdString();
     j["configPath"] = configPath.toStdString();
 
@@ -60,6 +36,52 @@ nlohmann::json WorkConfig::toJson() const
 }
 
 void WorkConfig::toFile(const QString& filepath) const
+{
+    std::string jsonStr = toJson().dump(4);
+    writeFileContent(filepath, QString::fromStdString(jsonStr));
+}
+
+AssistProgramWorkConfig AssistProgramWorkConfig::fromJson(const nlohmann::json& json)
+{
+    AssistProgramWorkConfig result;
+
+    result.masterNdiSourceName = QString::fromStdString(json.at("masterNdiSourceName"));
+    result.footmanNdiSourceName = QString::fromStdString(json.at("footmanNdiSourceName"));
+
+    nlohmann::json footmanHidInfoObj = json.at("footmanHidInfo");
+    result.footmanHidInfo.vid = footmanHidInfoObj["vid"];
+    result.footmanHidInfo.pid = footmanHidInfoObj["pid"];
+
+    result.config = AssistProgramConfig::fromJson(json["config"]);
+
+    return result;
+}
+
+AssistProgramWorkConfig AssistProgramWorkConfig::fromFile(const QString& filepath)
+{
+    QString jsonStr = readFileContent(filepath);
+    nlohmann::json j = nlohmann::json::parse(jsonStr.toStdString(), nullptr, true, true);
+    return AssistProgramWorkConfig::fromJson(j);
+}
+
+nlohmann::json AssistProgramWorkConfig::toJson() const
+{
+    nlohmann::json j;
+
+    j["masterNdiSourceName"] = masterNdiSourceName.toStdString();
+    j["footmanNdiSourceName"] = footmanNdiSourceName.toStdString();
+
+    nlohmann::json footmanHidInfoObj;
+    footmanHidInfoObj["vid"] = footmanHidInfo.vid;
+    footmanHidInfoObj["pid"] = footmanHidInfo.pid;
+    j["footmanHidInfo"] = footmanHidInfoObj;
+
+    j["config"] = config.toJson();
+
+    return j;
+}
+
+void AssistProgramWorkConfig::toFile(const QString& filepath) const
 {
     std::string jsonStr = toJson().dump(4);
     writeFileContent(filepath, QString::fromStdString(jsonStr));

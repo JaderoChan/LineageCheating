@@ -13,6 +13,12 @@ enum WorkType
     WT_AUTO_SHOOTING
 };
 
+struct HIDInfo
+{
+    int vid = 0;
+    int pid = 0;
+};
+
 struct WorkConfig
 {
     WorkConfig() = default;
@@ -23,21 +29,27 @@ struct WorkConfig
     nlohmann::json toJson() const;
     void toFile(const QString& filepath) const;
 
-    struct HIDInfo
-    {
-        int vid = 0;
-        int pid = 0;
-    };
-
     QString name;
     WorkType type;
+
+    QString gameDataPath;
+    QString configPath;
+};
+
+struct AssistProgramWorkConfig
+{
+    AssistProgramWorkConfig() = default;
+
+    static AssistProgramWorkConfig fromJson(const nlohmann::json& json);
+    static AssistProgramWorkConfig fromFile(const QString& filepath);
+
+    nlohmann::json toJson() const;
+    void toFile(const QString& filepath) const;
 
     QString masterNdiSourceName;
     QString footmanNdiSourceName;
 
-    HIDInfo masterHidInfo;
     HIDInfo footmanHidInfo;
 
-    QString gameDataPath;
-    QString configPath;
+    AssistProgramConfig config;
 };

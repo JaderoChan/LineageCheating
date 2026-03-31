@@ -1,13 +1,14 @@
 #pragma once
 
 #include <qevent.h>
-#include <qlist.h>
+#include <qmap.h>
 #include <qpushbutton.h>
 
 #include <trwidgets/trmainwindow.h>
 
 #include "ui_main_window.h"
-#include "work_operate_page.h"
+#include "assist_program_operate_page.h"
+#include "work_config.h"
 
 class MainWindow : public TrMainWindow
 {
@@ -17,10 +18,8 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
 
-    void addWorkOperatePage(WorkOperatePage* page, bool jumpTo);
-    void addWorkOperatePage(bool jumpTo);
-    void removeWorkOperatePage(int index);
-    void removeWorkOperatePage(WorkOperatePage* page);
+    void addTabPage(bool jumpTo);
+    void removeTabPage(int index);
 
 protected:
     void updateText() override;
@@ -33,4 +32,5 @@ private:
 
     Ui::MainWindow ui;
     QPushButton* tabWidgetAddBtn_;
+    QMap<QWidget*, WorkConfig> pageAndConfigMap_;
 };
