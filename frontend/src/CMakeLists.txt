@@ -66,7 +66,7 @@ option(KEEP_TERMINAL ON)
 if(WIN32)
     set_target_properties(
         ${PROJECT_NAME} PROPERTIES
-        WIN32_EXECUTABLE $<BOOL:KEEP_TERMINAL>
+        WIN32_EXECUTABLE $<NOT:$<BOOL:KEEP_TERMINAL>>
     )
 endif()
 

@@ -15,6 +15,7 @@ class MainWindow : public TrMainWindow
 
 public:
     explicit MainWindow(QWidget* parent = nullptr);
+    ~MainWindow();
 
     void addWorkOperatePage(WorkOperatePage* page, bool jumpTo);
     void addWorkOperatePage(bool jumpTo);

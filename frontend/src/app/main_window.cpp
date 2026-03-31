@@ -16,8 +16,7 @@ MainWindow::MainWindow(QWidget* parent)
     tabWidgetAddBtn_->setFlat(true);
     tabWidgetAddBtn_->setIconSize(QSize(24, 24));
     ui.tabWidget->setCornerWidget(tabWidgetAddBtn_);
-
-    connect(tabWidgetAddBtn_, &QPushButton::clicked, this, [this]() { addWorkOperatePage(false); });
+    connect(tabWidgetAddBtn_, &QPushButton::clicked, this, [this]() { addWorkOperatePage(true); });
 
     // 标签页的关闭
     ui.tabWidget->setTabsClosable(true);
@@ -33,6 +32,11 @@ MainWindow::MainWindow(QWidget* parent)
     ui.tabWidget->tabBar()->installEventFilter(this);
 
     updateText();
+}
+
+MainWindow::~MainWindow()
+{
+    // TODO: Save settings.
 }
 
 void MainWindow::addWorkOperatePage(WorkOperatePage* page, bool jumpTo)

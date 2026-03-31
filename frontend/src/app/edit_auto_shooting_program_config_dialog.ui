@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>EditAutoShootingProgramConfigDialog</class>
- <widget class="QDialog" name="Form">
+ <widget class="QDialog" name="EditAutoShootingProgramConfigDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>EditAutoShootingProgramConfigDialog</string>
   </property>
  </widget>
  <resources/>
