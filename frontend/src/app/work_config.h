@@ -29,6 +29,7 @@ struct WorkConfig
         int pid = 0;
     };
 
+    QString name;
     WorkType type;
 
     QString masterNdiSourceName;

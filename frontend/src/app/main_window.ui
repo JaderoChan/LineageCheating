@@ -36,11 +36,78 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="QTabWidget" name="tabWidget">
-      <widget class="QWidget" name="tab">
-       <attribute name="title">
-        <string>Tab 1</string>
-       </attribute>
+     <widget class="QStackedWidget" name="stackedWidget">
+      <widget class="QWidget" name="tabWidgetPage">
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QTabWidget" name="tabWidget"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="introPage">
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QWidget" name="introWidget" native="true">
+          <layout class="QVBoxLayout" name="verticalLayout_4">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="introTextLabel">
+             <property name="text">
+              <string>Current no work be add, please double click to add new work.</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
@@ -59,30 +126,29 @@
     <property name="title">
      <string>Tools</string>
     </property>
-    <addaction name="actionSearch_HID_Sources"/>
-    <addaction name="actionSelect_Image_Point"/>
-    <addaction name="actionSelect_Screen_Color"/>
-    <addaction name="actionTest_HID"/>
+    <addaction name="actionSearchHIDSources"/>
+    <addaction name="actionSelectImagePoint"/>
+    <addaction name="actionSelectScreenColor"/>
+    <addaction name="actionTestHID"/>
    </widget>
    <addaction name="menuTools"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionSearch_HID_Sources">
+  <action name="actionSearchHIDSources">
    <property name="text">
     <string>Search HID Sources</string>
    </property>
   </action>
-  <action name="actionSelect_Image_Point">
+  <action name="actionSelectImagePoint">
    <property name="text">
     <string>Select Image Point</string>
    </property>
   </action>
-  <action name="actionSelect_Screen_Color">
+  <action name="actionSelectScreenColor">
    <property name="text">
     <string>Select Screen Color</string>
    </property>
   </action>
-  <action name="actionTest_HID">
+  <action name="actionTestHID">
    <property name="text">
     <string>Test HID</string>
    </property>
