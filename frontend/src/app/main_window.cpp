@@ -43,6 +43,7 @@ MainWindow::MainWindow(QWidget* parent)
 MainWindow::~MainWindow()
 {
     // TODO: Save settings.
+
     // Cleanup work thread
     for (auto it = pageAndConfigMap_.begin(); it != pageAndConfigMap_.end(); ++it)
         cleanupWorkPage(it.key());

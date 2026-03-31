@@ -188,6 +188,7 @@ endif()
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${DEPLOYQT}
+    $<$<CONFIG:Debug>:--debug>$<$<NOT:$<CONFIG:Debug>>:--release>
     $<TARGET_FILE:${PROJECT_NAME}>
     $<$<PLATFORM_ID:Darwin>:-codesign=->
 )
