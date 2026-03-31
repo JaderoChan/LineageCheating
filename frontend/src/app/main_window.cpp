@@ -84,10 +84,10 @@ void MainWindow::removeWorkOperatePage(WorkOperatePage* page)
 void MainWindow::updateText()
 {
     // Actions
-    ui.actionSearchHIDSources->setText(EASYTR("Search HID Sources"));
+    ui.actionSearchNdiSources->setText(EASYTR("Search NDI Sources"));
     ui.actionSelectImagePoint->setText(EASYTR("Select Image Point"));
     ui.actionSelectScreenColor->setText(EASYTR("Select Screen Color"));
-    ui.actionTestHID->setText(EASYTR("Test HID"));
+    ui.actionTestHid->setText(EASYTR("Test HID"));
 
     ui.introTextLabel->setText(EASYTR("Current no work be set, please double click page to add a new work."));
 }

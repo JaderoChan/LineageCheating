@@ -126,14 +126,14 @@
     <property name="title">
      <string>Tools</string>
     </property>
-    <addaction name="actionSearchHIDSources"/>
+    <addaction name="actionSearchNdiSources"/>
     <addaction name="actionSelectImagePoint"/>
     <addaction name="actionSelectScreenColor"/>
-    <addaction name="actionTestHID"/>
+    <addaction name="actionTestHid"/>
    </widget>
    <addaction name="menuTools"/>
   </widget>
-  <action name="actionSearchHIDSources">
+  <action name="actionSearchNdiSources">
    <property name="text">
     <string>Search HID Sources</string>
    </property>
@@ -148,7 +148,7 @@
     <string>Select Screen Color</string>
    </property>
   </action>
-  <action name="actionTestHID">
+  <action name="actionTestHid">
    <property name="text">
     <string>Test HID</string>
    </property>

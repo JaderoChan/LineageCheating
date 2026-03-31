@@ -9,5 +9,9 @@
         <file>icons/app/1024.png</file>
         <file>icons/app/32.png</file>
         <file>icons/app/128.png</file>
+        <file>icons/pass.png</file>
+        <file>icons/alert.png</file>
+        <file>icons/green_circle.png</file>
+        <file>icons/red_circle.png</file>
     </qresource>
 </RCC>
