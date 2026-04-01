@@ -75,7 +75,7 @@ AssistProgramOperatePage::AssistProgramOperatePage(
     ui.footmanHidPidInputLineEdit->setValidator(pidValidator);
 
     // 设置运行状态检查频率。
-    stateUpdateTimer_.setInterval(200);
+    stateUpdateTimer_.setInterval(300);
 
     // 信号槽
     connect(ui.editConfigButton, &QPushButton::clicked, this, &AssistProgramOperatePage::onEditConfigButtonClicked);
@@ -404,6 +404,27 @@ void AssistProgramOperatePage::updateStateIconAndText()
     {
         ui.runningStateIcon->setPixmap(redCirclePixmap_);
         ui.runningStateTextLabel->setText(EASYTR("(Not Running)"));
+
+        // 额外判断 NDI 是否断开。
+        if (!isNdiConnected(masterRecv_, 200))
+        {
+            masterNdiConnected_ = false;
+            if (masterRecv_)
+            {
+                NDIlib_recv_destroy(masterRecv_);
+                masterRecv_ = nullptr;
+            }
+        }
+
+        if (!isNdiConnected(footmanRecv_, 200))
+        {
+            footmanNdiConnected_ = false;
+            if (footmanRecv_)
+            {
+                NDIlib_recv_destroy(footmanRecv_);
+                footmanRecv_ = nullptr;
+            }
+        }
     }
 
     // 设置连接状态图标。
