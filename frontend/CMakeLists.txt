@@ -41,7 +41,7 @@ set(APP_CONTACT_EMAIL "c_dl_cn@outlook.com")
 set(APP_COPYRIGHT_TEXT "Copyright (c) 2026 JaderoChan")
 
 set(DEFAULT_GAME_DATA_FILEPATH "./data/game_data.json")
-set(DEFAULT_WORK_CONFIG_FILE "./work_config.json")
+set(DEFAULT_WORK_CONFIG_FILEPATH "./work_config.json")
 set(DEFAULT_ASSIST_PROGRAM_WORK_CONFIG_DIR "./assist_program_configs")
 
 ###############

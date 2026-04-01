@@ -6,9 +6,21 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>540</width>
+    <height>360</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>540</width>
+    <height>360</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>540</width>
+    <height>360</height>
+   </size>
   </property>
   <property name="font">
    <font>
@@ -28,8 +40,8 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-66</y>
-        <width>363</width>
+        <y>0</y>
+        <width>503</width>
         <height>346</height>
        </rect>
       </property>
@@ -81,18 +93,6 @@
                 </property>
                 <item>
                  <widget class="QLabel" name="colorConfidenceTextLabel">
-                  <property name="minimumSize">
-                   <size>
-                    <width>56</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>56</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
                   <property name="text">
                    <string>TextLabel</string>
                   </property>
@@ -109,13 +109,13 @@
                  <widget class="QLineEdit" name="colorConfidenceLineEdit">
                   <property name="minimumSize">
                    <size>
-                    <width>48</width>
+                    <width>72</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>48</width>
+                    <width>64</width>
                     <height>16777215</height>
                    </size>
                   </property>
@@ -204,18 +204,6 @@
              </item>
              <item row="0" column="0">
               <widget class="QLabel" name="treatTimeIntervalTextLabel">
-               <property name="minimumSize">
-                <size>
-                 <width>56</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>56</width>
-                 <height>16777215</height>
-                </size>
-               </property>
                <property name="text">
                 <string>TextLabel</string>
                </property>
@@ -244,18 +232,6 @@
                 </property>
                 <item>
                  <widget class="QLabel" name="backhomeHpThresholdTextLabel">
-                  <property name="minimumSize">
-                   <size>
-                    <width>56</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>56</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
                   <property name="text">
                    <string>TextLabel</string>
                   </property>
@@ -272,13 +248,13 @@
                  <widget class="QLineEdit" name="backhomeHpThresholdLineEdit">
                   <property name="minimumSize">
                    <size>
-                    <width>48</width>
+                    <width>64</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>48</width>
+                    <width>72</width>
                     <height>16777215</height>
                    </size>
                   </property>
@@ -292,18 +268,6 @@
              </item>
              <item row="2" column="0">
               <widget class="QLabel" name="cpsTextLabel">
-               <property name="minimumSize">
-                <size>
-                 <width>56</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>56</width>
-                 <height>16777215</height>
-                </size>
-               </property>
                <property name="text">
                 <string>TextLabel</string>
                </property>
@@ -311,18 +275,6 @@
              </item>
              <item row="1" column="0">
               <widget class="QLabel" name="frameGetterTimeoutTextLabel">
-               <property name="minimumSize">
-                <size>
-                 <width>56</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>56</width>
-                 <height>16777215</height>
-                </size>
-               </property>
                <property name="text">
                 <string>TextLabel</string>
                </property>

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <qevent.h>
+
 #include <trwidgets/trdialog.h>
 #include <assist_program_config.hpp>
 
@@ -14,6 +16,7 @@ public:
 
 protected:
     void updateText() override;
+    bool eventFilter(QObject* obj, QEvent* event) override;
 
     void updateWidgetValue();
 

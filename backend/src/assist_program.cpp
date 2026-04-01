@@ -177,7 +177,6 @@ void AssistProgram::mainWork()
     };
 
     // Debug使用
-    size_t frameNum = 1;
     bool masterDebugWindowShowed = false;
     bool footmanDebugWindowShowed = false;
 
@@ -212,9 +211,6 @@ void AssistProgram::mainWork()
             shouldClose_.store(true);
             continue;
         }
-
-        if (config.outputLog)
-            printf("Got frame: %zu\n", frameNum++);
 
         // Master
         {

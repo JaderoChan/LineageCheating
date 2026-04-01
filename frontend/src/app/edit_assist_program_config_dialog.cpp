@@ -49,7 +49,7 @@ EditAssistProgramConfigDialog::EditAssistProgramConfigDialog(const AssistProgram
     ui.backhomeHpThresholdLineEdit->setValidator(validator5);
 
     ui.backhomeHpThresholdSlider->setMinimum(0);
-    ui.backhomeHpThresholdSlider->setMaximum(10e6);
+    ui.backhomeHpThresholdSlider->setMaximum(100'000'0);
 
     auto validator6 = new QIntValidator(0, 4000, this);
     ui.debugWindowMaxWidthLineEdit->setValidator(validator6);
@@ -59,6 +59,9 @@ EditAssistProgramConfigDialog::EditAssistProgramConfigDialog(const AssistProgram
 
     // 设置输入控件初始值。
     updateWidgetValue();
+
+    ui.colorConfidenceSlider->installEventFilter(this);
+    ui.backhomeHpThresholdSlider->installEventFilter(this);
 
     // 信号槽
     connect(ui.treatTimeIntervalInpputLineEdit, &QLineEdit::editingFinished, this, [this]()
@@ -81,7 +84,7 @@ EditAssistProgramConfigDialog::EditAssistProgramConfigDialog(const AssistProgram
 
     connect(ui.backhomeHpThresholdSlider, &QSlider::valueChanged, this, [this](int value)
     {
-        config_.backHomeHpThreshold = static_cast<double>(value) / 10e6;
+        config_.backHomeHpThreshold = static_cast<double>(value) / 100'000'0;
         updateWidgetValue();
     });
     connect(ui.backhomeHpThresholdLineEdit, &QLineEdit::editingFinished, this, [this]()
@@ -145,6 +148,21 @@ void EditAssistProgramConfigDialog::updateText()
     ui.limitDebugWindowSizeCheckBox->setText(EASYTR("Limit Debug Window Size"));
     ui.debugWindowMaxWidthTextLabel->setText(EASYTR("Max Width"));
     ui.debugWindowMaxHeightTextLabel->setText(EASYTR("Max Height"));
+
+    ui.confirmButton->setText(EASYTR("Confirm"));
+    ui.cancelButton->setText(EASYTR("Cancel"));
+}
+
+bool EditAssistProgramConfigDialog::eventFilter(QObject* obj, QEvent* event)
+{
+    // 禁用滑条的鼠标滚轮响应。
+    if (obj == ui.colorConfidenceSlider || obj == ui.backhomeHpThresholdSlider)
+    {
+        if (event->type() == QEvent::Wheel)
+            return true;
+    }
+
+    return TrDialog::eventFilter(obj, event);
 }
 
 void EditAssistProgramConfigDialog::updateWidgetValue()

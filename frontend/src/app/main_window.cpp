@@ -43,7 +43,7 @@ MainWindow::MainWindow(QWidget* parent)
     try
     {
         auto jsonContent = readFileContent(DEFAULT_WORK_CONFIG_FILEPATH);
-        nlohmann::json j = nlohmann::json::parse(jsonContent, nullptr, true, true);
+        nlohmann::json j = nlohmann::json::parse(jsonContent.toStdString(), nullptr, true, true);
         if (j.contains("workConfigs") && j["workConfigs"].is_array())
         {
             auto workConfigsArr = j["workConfigs"];
@@ -78,6 +78,14 @@ MainWindow::~MainWindow()
     // Save work configs.
     nlohmann::json workConfigsArr = nlohmann::json::array();
 
+    // 创建配置文件目录
+    QDir configDir(DEFAULT_ASSIST_PROGRAM_WORK_CONFIG_DIR);
+    if (!configDir.exists())
+    {
+        if (!configDir.mkpath("."))
+            debugOut(qCritical(), "Failed to create the directory: '%1'", DEFAULT_ASSIST_PROGRAM_WORK_CONFIG_DIR);
+    }
+
     for (int i = 0; i < ui.tabWidget->count(); ++i)
     {
         auto page = qobject_cast<AssistProgramOperatePage*>(ui.tabWidget->widget(i));
@@ -88,7 +96,16 @@ MainWindow::~MainWindow()
         if (config.configPath.isEmpty())
             config.configPath = makeAvailablePath(QDir(DEFAULT_ASSIST_PROGRAM_WORK_CONFIG_DIR), "config", ".json");
 
-        page->getAssistProgramWorkConfig().toFile(config.configPath);
+        // 保存 Assist Program Work Config
+        try { page->getAssistProgramWorkConfig().toFile(config.configPath); }
+        catch (const std::exception& e)
+        {
+            debugOut(
+                qCritical(),
+                "Can't write assist program work config to: '%1'. Error: %2",
+                config.configPath,
+                e.what());
+        }
 
         workConfigsArr.push_back(config.toJson());
     }
@@ -96,7 +113,16 @@ MainWindow::~MainWindow()
     nlohmann::json j;
     j["workConfigs"] = workConfigsArr;
 
-    writeFileContent(DEFAULT_WORK_CONFIG_FILEPATH, j.dump().c_str());
+    // 保存 Work Config
+    try { writeFileContent(DEFAULT_WORK_CONFIG_FILEPATH, QString::fromStdString(j.dump(4))); }
+    catch (const std::exception& e)
+    {
+        debugOut(
+            qCritical(),
+            "Can't write work config file: '%1'. Error: %2",
+            DEFAULT_GAME_DATA_FILEPATH,
+            e.what());
+    }
 
     // Cleanup work thread
     for (auto it = pageAndConfigMap_.begin(); it != pageAndConfigMap_.end(); ++it)
@@ -109,16 +135,24 @@ void MainWindow::addTabPage(const WorkConfig& config, bool jumpTo)
     try { gameData = GameData::fromFile(config.gameDataPath.toStdString()); }
     catch (const std::exception& e)
     {
-        debugOut(qWarning(), "Failed to open/parse Game Data: %1", e.what());
+        debugOut(
+            qWarning(),
+            "Failed to open/parse Game Data from file: '%1'. Error: %2.",
+            config.gameDataPath,
+            e.what());
         return;
     }
 
     AssistProgramWorkConfig assistProgramWorkConfig;
     try { assistProgramWorkConfig = AssistProgramWorkConfig::fromFile(config.configPath); }
-    catch (const std::exception& e) { debugOut(
-        qInfo(),
-        "Failed to open/parse Assist Program Work Config: %1. Will create new config.",
-        e.what()); }
+    catch (const std::exception& e)
+    {
+        debugOut(
+            qInfo(),
+            "Failed to open/parse Assist Program Work Config from file: '%1'. Error: %2. Will create a new config.",
+            config.configPath,
+            e.what());
+    }
 
     auto page = new AssistProgramOperatePage(gameData, assistProgramWorkConfig);
 

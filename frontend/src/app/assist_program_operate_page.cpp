@@ -265,7 +265,7 @@ void AssistProgramOperatePage::onNdiConnectButtonClicked(HostFlag flag)
     }
     else
     {
-        NDIlib_recv_create_v3_t recvDesc;
+        NDIlib_recv_create_v3_t recvDesc = {0};
         recvDesc.color_format = NDIlib_recv_color_format_BGRX_BGRA;
         recv = NDIlib_recv_create_v3(&recvDesc);
         if (!recv)
@@ -281,13 +281,12 @@ void AssistProgramOperatePage::onNdiConnectButtonClicked(HostFlag flag)
         QString sourceName = (flag == Master ? config_.masterNdiSourceName : config_.footmanNdiSourceName);
         QByteArray name = sourceName.toUtf8();
 
-        NDIlib_source_t source;
+        NDIlib_source_t source = {0};
         source.p_ndi_name = name.constData();
-        source.p_url_address = nullptr;
 
         NDIlib_recv_connect(recv, &source);
 
-        if (!verifyNdiConnection(recv, 1000))
+        if (!verifyNdiConnection(recv, 500))
         {
             NDIlib_recv_destroy(recv);
             recv = nullptr;
