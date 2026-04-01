@@ -27,8 +27,3 @@ set(GAME_DATA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/data/game_data.json)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/backend)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/frontend)
-
-set(TEST ON)
-if(${TEST})
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/main)
-endif()
