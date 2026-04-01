@@ -80,14 +80,14 @@ AssistProgramOperatePage::AssistProgramOperatePage(
     // 信号槽
     connect(ui.editConfigButton, &QPushButton::clicked, this, &AssistProgramOperatePage::onEditConfigButtonClicked);
 
-    connect(ui.masterNdiSourceNameInputLineEdit, &QLineEdit::textEdited,
-        this, [this](const QString& text) { config_.masterNdiSourceName = text; });
-    connect(ui.footmanNdiSourceNameInputLineEdit, &QLineEdit::textEdited,
-        this, [this](const QString& text) { config_.footmanNdiSourceName = text; });
-    connect(ui.footmanHidVidInputLineEdit, &QLineEdit::textEdited,
-        this, [this](const QString& text) { config_.footmanHidInfo.vid = text.toUInt(); });
-    connect(ui.footmanHidPidInputLineEdit, &QLineEdit::textEdited,
-        this, [this](const QString& text) { config_.footmanHidInfo.pid = text.toUInt(); });
+    connect(ui.masterNdiSourceNameInputLineEdit, &QLineEdit::editingFinished,
+        this, [this]() { config_.masterNdiSourceName = ui.masterNdiSourceNameInputLineEdit->text(); });
+    connect(ui.footmanNdiSourceNameInputLineEdit, &QLineEdit::editingFinished,
+        this, [this]() { config_.footmanNdiSourceName = ui.footmanHidPidInputLineEdit->text(); });
+    connect(ui.footmanHidVidInputLineEdit, &QLineEdit::editingFinished,
+        this, [this]() { config_.footmanHidInfo.vid = ui.footmanHidVidInputLineEdit->text().toUInt(); });
+    connect(ui.footmanHidPidInputLineEdit, &QLineEdit::editingFinished,
+        this, [this]() { config_.footmanHidInfo.pid = ui.footmanHidPidInputLineEdit->text().toUInt(); });
 
     connect(ui.masterSearchNdiSourceButton, &QPushButton::clicked,
         this, [this]() { onSearchNdiSourceButtonClicked(Master); });
