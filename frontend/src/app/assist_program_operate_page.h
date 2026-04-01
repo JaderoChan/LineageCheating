@@ -47,7 +47,8 @@ protected:
     void onHidConnectButtonClicked();
 
 private:
-    void updateStateIconAndText();
+    void updateRunningStateWidgets();
+    void updateConnectStateWidgets();
 
     Ui::AssistProgramOperatePage ui;
     GameData gameData_;
@@ -67,5 +68,5 @@ private:
     NDIlib_recv_instance_t footmanRecv_ = nullptr;
     hid::HID hid_ = nullptr;
 
-    QTimer stateUpdateTimer_;
+    QTimer runningStateUpdateTimer_;
 };

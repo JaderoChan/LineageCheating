@@ -75,7 +75,7 @@ AssistProgramOperatePage::AssistProgramOperatePage(
     ui.footmanHidPidInputLineEdit->setValidator(pidValidator);
 
     // 设置运行状态检查频率。
-    stateUpdateTimer_.setInterval(300);
+    runningStateUpdateTimer_.setInterval(200);
 
     // 信号槽
     connect(ui.editConfigButton, &QPushButton::clicked, this, &AssistProgramOperatePage::onEditConfigButtonClicked);
@@ -103,12 +103,12 @@ AssistProgramOperatePage::AssistProgramOperatePage(
     connect(ui.startButton, &QPushButton::clicked, this, &AssistProgramOperatePage::run);
     connect(ui.stopButton, &QPushButton::clicked, this, &AssistProgramOperatePage::stop);
 
-    connect(&stateUpdateTimer_, &QTimer::timeout, this, &AssistProgramOperatePage::updateStateIconAndText);
+    connect(&runningStateUpdateTimer_, &QTimer::timeout, this, &AssistProgramOperatePage::updateRunningStateWidgets);
 
-    stateUpdateTimer_.start();
+    runningStateUpdateTimer_.start();
 
     updateText();
-    updateStateIconAndText();
+    updateConnectStateWidgets();
 }
 
 AssistProgramOperatePage::~AssistProgramOperatePage()
@@ -169,7 +169,7 @@ void AssistProgramOperatePage::run()
     assistProgram_ = std::make_unique<AssistProgram>(masterRecv_, footmanRecv_, hid_, gameData_, config_.config);
     assistProgram_->run();
 
-    updateStateIconAndText();
+    updateRunningStateWidgets();
 }
 
 void AssistProgramOperatePage::stop()
@@ -180,7 +180,7 @@ void AssistProgramOperatePage::stop()
     assistProgram_->stop();
     assistProgram_.reset();
 
-    updateStateIconAndText();
+    updateRunningStateWidgets();
 }
 
 bool AssistProgramOperatePage::isRunning() const
@@ -304,7 +304,7 @@ void AssistProgramOperatePage::onNdiConnectButtonClicked(HostFlag flag)
         connected = true;
     }
 
-    updateStateIconAndText();
+    updateConnectStateWidgets();
 }
 
 void AssistProgramOperatePage::onSearchNdiSourceButtonClicked(HostFlag flag)
@@ -390,43 +390,56 @@ void AssistProgramOperatePage::onHidConnectButtonClicked()
         }
     }
 
-    updateStateIconAndText();
+    updateConnectStateWidgets();
 }
 
-void AssistProgramOperatePage::updateStateIconAndText()
+void AssistProgramOperatePage::updateRunningStateWidgets()
 {
-    if (isRunning())
+    static bool lastIsRunning = false;
+    bool currentIsRunning = isRunning();
+    // 运行状态发生了改变，更新信息。
+    if (lastIsRunning != currentIsRunning)
     {
-        ui.runningStateIcon->setPixmap(greenCirclePixmap_);
-        ui.runningStateTextLabel->setText(EASYTR("(Is Running)"));
-    }
-    else
-    {
-        ui.runningStateIcon->setPixmap(redCirclePixmap_);
-        ui.runningStateTextLabel->setText(EASYTR("(Not Running)"));
-
-        // 额外判断 NDI 是否断开。
-        if (!isNdiConnected(masterRecv_, 200))
+        if (currentIsRunning)
         {
-            masterNdiConnected_ = false;
-            if (masterRecv_)
+            ui.runningStateIcon->setPixmap(greenCirclePixmap_);
+            ui.runningStateTextLabel->setText(EASYTR("(Is Running)"));
+        }
+        else
+        {
+            ui.runningStateIcon->setPixmap(redCirclePixmap_);
+            ui.runningStateTextLabel->setText(EASYTR("(Not Running)"));
+
+            // 额外判断 NDI 是否断开。
+            if (!isNdiConnected(masterRecv_, 200))
             {
-                NDIlib_recv_destroy(masterRecv_);
-                masterRecv_ = nullptr;
+                masterNdiConnected_ = false;
+                if (masterRecv_)
+                {
+                    NDIlib_recv_destroy(masterRecv_);
+                    masterRecv_ = nullptr;
+                }
             }
+
+            if (!isNdiConnected(footmanRecv_, 200))
+            {
+                footmanNdiConnected_ = false;
+                if (footmanRecv_)
+                {
+                    NDIlib_recv_destroy(footmanRecv_);
+                    footmanRecv_ = nullptr;
+                }
+            }
+
+            updateConnectStateWidgets();
         }
 
-        if (!isNdiConnected(footmanRecv_, 200))
-        {
-            footmanNdiConnected_ = false;
-            if (footmanRecv_)
-            {
-                NDIlib_recv_destroy(footmanRecv_);
-                footmanRecv_ = nullptr;
-            }
-        }
+        lastIsRunning = currentIsRunning;
     }
+}
 
+void AssistProgramOperatePage::updateConnectStateWidgets()
+{
     // 设置连接状态图标。
     ui.masterNdiStateIcon->setPixmap(masterNdiConnected_ ? passPixmap_ : alertPixmap_);
     ui.footmanNdiStateIcon->setPixmap(footmanNdiConnected_ ? passPixmap_ : alertPixmap_);
