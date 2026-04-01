@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.26)
 
-project(LineageCheating VERSION 0.0.1)
+project(LineageCheating VERSION 0.1.0)
 
 if(NOT MSVC)
     message(FATAL_ERROR "This project only be compile by MSVC compiler.")

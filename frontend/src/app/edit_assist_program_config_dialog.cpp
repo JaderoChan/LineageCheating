@@ -49,7 +49,7 @@ EditAssistProgramConfigDialog::EditAssistProgramConfigDialog(const AssistProgram
     ui.backhomeHpThresholdLineEdit->setValidator(validator5);
 
     ui.backhomeHpThresholdSlider->setMinimum(0);
-    ui.backhomeHpThresholdSlider->setMaximum(100'000'0);
+    ui.backhomeHpThresholdSlider->setMaximum(100'000);
 
     auto validator6 = new QIntValidator(0, 4000, this);
     ui.debugWindowMaxWidthLineEdit->setValidator(validator6);
@@ -84,7 +84,7 @@ EditAssistProgramConfigDialog::EditAssistProgramConfigDialog(const AssistProgram
 
     connect(ui.backhomeHpThresholdSlider, &QSlider::valueChanged, this, [this](int value)
     {
-        config_.backHomeHpThreshold = static_cast<double>(value) / 100'000'0;
+        config_.backHomeHpThreshold = static_cast<double>(value) / 100'000;
         updateWidgetValue();
     });
     connect(ui.backhomeHpThresholdLineEdit, &QLineEdit::editingFinished, this, [this]()
@@ -178,7 +178,7 @@ void EditAssistProgramConfigDialog::updateWidgetValue()
     ui.colorConfidenceSlider->setValue(config_.colorConfidence * 100);
     ui.colorConfidenceLineEdit->setText(QString::number(config_.colorConfidence));
 
-    ui.backhomeHpThresholdSlider->setValue(config_.backHomeHpThreshold * 10e6);
+    ui.backhomeHpThresholdSlider->setValue(config_.backHomeHpThreshold * 100'000);
     ui.backhomeHpThresholdLineEdit->setText(QString::number(config_.backHomeHpThreshold));
 
     ui.debugLogOutputCheckBox->setChecked(config_.outputLog);
