@@ -244,6 +244,7 @@ void AssistProgramOperatePage::onNdiConnectButtonClicked(HostFlag flag)
 
     if (connected)
     {
+        // 断开逻辑
         if (isRunning())
         {
             QMessageBox msgBox(this);
@@ -271,6 +272,7 @@ void AssistProgramOperatePage::onNdiConnectButtonClicked(HostFlag flag)
     }
     else
     {
+        // 连接逻辑
         NDIlib_recv_create_v3_t recvDesc = {0};
         recvDesc.color_format = NDIlib_recv_color_format_BGRX_BGRA;
         recv = NDIlib_recv_create_v3(&recvDesc);
@@ -353,6 +355,7 @@ void AssistProgramOperatePage::onHidConnectButtonClicked()
 {
     if (footmanHidConnected_)
     {
+        // 断开逻辑
         if (isRunning())
         {
             QMessageBox msgBox(this);
@@ -375,6 +378,7 @@ void AssistProgramOperatePage::onHidConnectButtonClicked()
     }
     else
     {
+        // 连接逻辑
         hid_ = hid::openHID(config_.footmanHidInfo.vid, config_.footmanHidInfo.pid);
         if (!isValidHid(hid_))
         {
