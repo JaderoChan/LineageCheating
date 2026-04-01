@@ -15,22 +15,27 @@ static bool isValidHid(hid::HID hid)
     return hid && (reinterpret_cast<intptr_t>(hid) != -1);
 }
 
-bool verifyNdiConnection(NDIlib_recv_instance_t recv, int timeoutMs)
+bool verifyNdiConnection(NDIlib_recv_instance_t recv, int timeout)
 {
+    using namespace std::chrono;
+
     NDIlib_video_frame_v2_t videoFrame;
     NDIlib_audio_frame_v3_t audioFrame;
     NDIlib_metadata_frame_t metadataFrame;
 
-    auto start = std::chrono::steady_clock::now();
+    auto start = steady_clock::now();
     while (true)
     {
-        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now() - start).count();
-        if (elapsed >= timeoutMs)
-            return false;  // 超时，认为连接失败
+        auto elapsed = duration_cast<milliseconds>(steady_clock::now() - start).count();
+        if (elapsed >= timeout)
+            return false;
+
+        // 动态计算本次最大等待时间，避免单次阻塞超过剩余超时。
+        int remaining = timeout - static_cast<int>(elapsed);
+        int waitMs = std::min(remaining, 500);
 
         NDIlib_frame_type_e frameType = NDIlib_recv_capture_v3(
-            recv, &videoFrame, &audioFrame, &metadataFrame, 500);
+            recv, &videoFrame, &audioFrame, &metadataFrame, waitMs);
 
         switch (frameType)
         {
@@ -282,7 +287,7 @@ void AssistProgramOperatePage::onNdiConnectButtonClicked(HostFlag flag)
 
         NDIlib_recv_connect(recv, &source);
 
-        if (!verifyNdiConnection(recv, 300))
+        if (!verifyNdiConnection(recv, 1000))
         {
             NDIlib_recv_destroy(recv);
             recv = nullptr;
@@ -361,7 +366,7 @@ void AssistProgramOperatePage::onHidConnectButtonClicked()
         }
 
         hid::closeHID(hid_);
-        footmanNdiConnected_ = false;
+        footmanHidConnected_ = false;
     }
     else
     {
