@@ -1,13 +1,27 @@
 #include "main_window.h"
 
+#include <qdir.h>
 #include <qlineedit.h>
 #include <qthread.h>
 #include <qtabbar.h>
 
 #include <utils/debug_output.h>
+#include <utils/file_io.h>
 
 #include "config.h"
 #include "search_ndi_sources_dialog.h"
+
+static QString makeAvailablePath(const QDir& dir, const QString& filename, const QString& fileext)
+{
+    int i = 0;
+    while (true)
+    {
+        QString filepath = dir.filePath(filename + (i == 0 ? "" : QString(" (%1)").arg(i)) + fileext);
+        if (!QFileInfo::exists(filepath))
+            return filepath;
+        ++i;
+    }
+}
 
 MainWindow::MainWindow(QWidget* parent)
     : TrMainWindow(parent), tabWidgetAddBtn_(new QPushButton(this))
@@ -26,7 +40,26 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui.tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::onTabCloseRequested);
 
     // 根据应用设置读取已有页面。
-    // TODO: Assign ui.tabWidget and configAndPageMap_.
+    try
+    {
+        auto jsonContent = readFileContent(DEFAULT_WORK_CONFIG_FILEPATH);
+        nlohmann::json j = nlohmann::json::parse(jsonContent, nullptr, true, true);
+        if (j.contains("workConfigs") && j["workConfigs"].is_array())
+        {
+            auto workConfigsArr = j["workConfigs"];
+            for (size_t i = 0; i < workConfigsArr.size(); ++i)
+            {
+                const auto& workConfigObj = workConfigsArr[i];
+                WorkConfig config = WorkConfig::fromJson(workConfigObj);
+                addTabPage(config, false);
+            }
+        }
+    }
+    catch (...)
+    {
+        // Pass
+        ;
+    }
 
     // 根据 TabWidget 的页面数量设置当前窗口（如果数量为 0 则显示启动界面）。
     ui.stackedWidget->setCurrentWidget(ui.tabWidget->count() == 0 ? ui.introPage : ui.tabWidgetPage);
@@ -42,11 +75,60 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow()
 {
-    // TODO: Save settings.
+    // Save work configs.
+    nlohmann::json workConfigsArr = nlohmann::json::array();
+
+    for (int i = 0; i < ui.tabWidget->count(); ++i)
+    {
+        auto page = qobject_cast<AssistProgramOperatePage*>(ui.tabWidget->widget(i));
+        if (!page)
+            continue;
+
+        WorkConfig config = pageAndConfigMap_[page];
+        if (config.configPath.isEmpty())
+            config.configPath = makeAvailablePath(QDir(DEFAULT_ASSIST_PROGRAM_WORK_CONFIG_DIR), "config", ".json");
+
+        page->getAssistProgramWorkConfig().toFile(config.configPath);
+
+        workConfigsArr.push_back(config.toJson());
+    }
+
+    nlohmann::json j;
+    j["workConfigs"] = workConfigsArr;
+
+    writeFileContent(DEFAULT_WORK_CONFIG_FILEPATH, j.dump().c_str());
 
     // Cleanup work thread
     for (auto it = pageAndConfigMap_.begin(); it != pageAndConfigMap_.end(); ++it)
         cleanupWorkPage(it.key());
+}
+
+void MainWindow::addTabPage(const WorkConfig& config, bool jumpTo)
+{
+    GameData gameData;
+    try { gameData = GameData::fromFile(config.gameDataPath.toStdString()); }
+    catch (const std::exception& e)
+    {
+        debugOut(qWarning(), "Failed to open/parse Game Data: %1", e.what());
+        return;
+    }
+
+    AssistProgramWorkConfig assistProgramWorkConfig;
+    try { assistProgramWorkConfig = AssistProgramWorkConfig::fromFile(config.configPath); }
+    catch (const std::exception& e) { debugOut(
+        qInfo(),
+        "Failed to open/parse Assist Program Work Config: %1. Will create new config.",
+        e.what()); }
+
+    auto page = new AssistProgramOperatePage(gameData, assistProgramWorkConfig);
+
+    int index = ui.tabWidget->addTab(page, config.name);
+    if (ui.stackedWidget->currentWidget() != ui.tabWidgetPage)
+        ui.stackedWidget->setCurrentWidget(ui.tabWidgetPage);
+    if (jumpTo)
+        ui.tabWidget->setCurrentIndex(index);
+
+    pageAndConfigMap_.insert(page, config);
 }
 
 void MainWindow::addTabPage(bool jumpTo)
@@ -58,26 +140,7 @@ void MainWindow::addTabPage(bool jumpTo)
     config.name = EASYTR("New Work");
     config.gameDataPath = DEFAULT_GAME_DATA_FILEPATH;
 
-    GameData gameData;
-    try { gameData = GameData::fromFile(config.gameDataPath.toStdString()); }
-    catch (const std::exception& e)
-    {
-        debugOut(qWarning(), "Failed to open/parse Game Data: %1", e.what());
-        return;
-    }
-
-    AssistProgramWorkConfig assistProgramWorkConfig;
-    assistProgramWorkConfig.footmanHidInfo = {1, 1};
-
-    auto page = new AssistProgramOperatePage(gameData, assistProgramWorkConfig);
-
-    int index = ui.tabWidget->addTab(page, config.name);
-    if (ui.stackedWidget->currentWidget() != ui.tabWidgetPage)
-        ui.stackedWidget->setCurrentWidget(ui.tabWidgetPage);
-    if (jumpTo)
-        ui.tabWidget->setCurrentIndex(index);
-
-    pageAndConfigMap_.insert(page, config);
+    addTabPage(config, jumpTo);
 }
 
 void MainWindow::removeTabPage(int index)
@@ -181,6 +244,8 @@ void MainWindow::cleanupWorkPage(QWidget* wgt)
 void MainWindow::startRenameTab(int index)
 {
     auto page = qobject_cast<AssistProgramOperatePage*>(ui.tabWidget->widget(index));
+    if (!page)
+        return;
 
     QTabBar* tabBar = ui.tabWidget->tabBar();
     QRect rect = tabBar->tabRect(index);

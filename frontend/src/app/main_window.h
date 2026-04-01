@@ -18,6 +18,7 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
 
+    void addTabPage(const WorkConfig& config, bool jumpTo);
     void addTabPage(bool jumpTo);
     void removeTabPage(int index);
 

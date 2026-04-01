@@ -1,14 +1,14 @@
 #pragma once
 
 #include <qstring.h>
+#include <qlist.h>
 
 #include "language.h"
 
 struct Settings
 {
     Language language;
-    QString gameDataFilepath;
-    QString assistProgramConfigFilepath;
+    QList<QString> assistProgramWorkConfigs;
 };
 
 Settings loadSettings();

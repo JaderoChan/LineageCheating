@@ -233,7 +233,7 @@ void AssistProgramOperatePage::onNdiConnectButtonClicked(HostFlag flag)
 
             if (msgBox.clickedButton() == cancelBtn)
                 return;
-            stop;
+            stop();
         }
 
         if (recv)
@@ -343,7 +343,7 @@ void AssistProgramOperatePage::onHidConnectButtonClicked()
 
             if (msgBox.clickedButton() == cancelBtn)
                 return;
-            stop;
+            stop();
         }
 
         hid::closeHID(hid_);
