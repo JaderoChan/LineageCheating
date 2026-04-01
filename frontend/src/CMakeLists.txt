@@ -176,22 +176,25 @@ add_custom_command(
     ${GAME_DATA_FILE} $<TARGET_FILE_DIR:${PROJECT_NAME}>/data
 )
 
-# Qt 部署（需要保证 *deployqt 可见）
-if(WIN32)
-    set(DEPLOYQT windeployqt)
-elseif(APPLE)
-    set(DEPLOYQT macdeployqt)
-else()
-    # TODO
-endif()
+option(DELPOYQT_AFTER_BUILD "Execute *deployqt program to install Qt dependencies after build." OFF)
+if(DEPLOYQT_AFTER_BUILD)
+    # Qt 部署（需要保证 *deployqt 可见）
+    if(WIN32)
+        set(DEPLOYQT windeployqt)
+    elseif(APPLE)
+        set(DEPLOYQT macdeployqt)
+    else()
+        # TODO
+    endif()
 
-add_custom_command(
-    TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${DEPLOYQT}
-    $<$<CONFIG:Debug>:--debug>$<$<NOT:$<CONFIG:Debug>>:--release>
-    $<TARGET_FILE:${PROJECT_NAME}>
-    $<$<PLATFORM_ID:Darwin>:-codesign=->
-)
+    add_custom_command(
+        TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${DEPLOYQT}
+        $<$<CONFIG:Debug>:--debug>$<$<NOT:$<CONFIG:Debug>>:--release>
+        $<TARGET_FILE:${PROJECT_NAME}>
+        $<$<PLATFORM_ID:Darwin>:-codesign=->
+    )
+endif()
 
 # MacOS DMG 打包
 option(CREATE_DMG "Create DMG for MacOS, create-dmg is required." OFF)
