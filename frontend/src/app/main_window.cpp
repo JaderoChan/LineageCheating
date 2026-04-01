@@ -11,11 +11,13 @@
 #include "config.h"
 #include "search_ndi_sources_dialog.h"
 
+/// @brief 根据给定参数构建一个当前不存在的文件路径。
 static QString makeAvailablePath(const QDir& dir, const QString& filename, const QString& fileext)
 {
     int i = 0;
     while (true)
     {
+        // 在文件名后加上序号。
         QString filepath = dir.filePath(filename + (i == 0 ? "" : QString(" (%1)").arg(i)) + fileext);
         if (!QFileInfo::exists(filepath))
             return filepath;
@@ -42,8 +44,10 @@ MainWindow::MainWindow(QWidget* parent)
     // 根据应用设置读取已有页面。
     try
     {
+        // 读取 Work Config 列表。
         auto jsonContent = readFileContent(DEFAULT_WORK_CONFIG_FILEPATH);
         nlohmann::json j = nlohmann::json::parse(jsonContent.toStdString(), nullptr, true, true);
+
         if (j.contains("workConfigs") && j["workConfigs"].is_array())
         {
             auto workConfigsArr = j["workConfigs"];
@@ -75,10 +79,10 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow()
 {
-    // Save work configs.
+    // 退出程序前保存所有工作页面的 Work Config。
     nlohmann::json workConfigsArr = nlohmann::json::array();
 
-    // 创建配置文件目录
+    // 尝试创建配置文件目录。
     QDir configDir(DEFAULT_ASSIST_PROGRAM_WORK_CONFIG_DIR);
     if (!configDir.exists())
     {
@@ -86,6 +90,7 @@ MainWindow::~MainWindow()
             debugOut(qCritical(), "Failed to create the directory: '%1'", DEFAULT_ASSIST_PROGRAM_WORK_CONFIG_DIR);
     }
 
+    // 获取每个工作页面的 Assist Program Work Config 并保存至指定/默认路径。
     for (int i = 0; i < ui.tabWidget->count(); ++i)
     {
         auto page = qobject_cast<AssistProgramOperatePage*>(ui.tabWidget->widget(i));
@@ -96,8 +101,11 @@ MainWindow::~MainWindow()
         if (config.configPath.isEmpty())
             config.configPath = makeAvailablePath(QDir(DEFAULT_ASSIST_PROGRAM_WORK_CONFIG_DIR), "config", ".json");
 
-        // 保存 Assist Program Work Config
-        try { page->getAssistProgramWorkConfig().toFile(config.configPath); }
+        // 保存 Assist Program Work Config。
+        try
+        {
+            page->getAssistProgramWorkConfig().toFile(config.configPath);
+        }
         catch (const std::exception& e)
         {
             debugOut(
@@ -113,8 +121,11 @@ MainWindow::~MainWindow()
     nlohmann::json j;
     j["workConfigs"] = workConfigsArr;
 
-    // 保存 Work Config
-    try { writeFileContent(DEFAULT_WORK_CONFIG_FILEPATH, QString::fromStdString(j.dump(4))); }
+    // 保存 Work Config 列表。
+    try
+    {
+        writeFileContent(DEFAULT_WORK_CONFIG_FILEPATH, QString::fromStdString(j.dump(4)));
+    }
     catch (const std::exception& e)
     {
         debugOut(
@@ -124,15 +135,19 @@ MainWindow::~MainWindow()
             e.what());
     }
 
-    // Cleanup work thread
+    // 退出并清理工作线程
     for (auto it = pageAndConfigMap_.begin(); it != pageAndConfigMap_.end(); ++it)
         cleanupWorkPage(it.key());
 }
 
 void MainWindow::addTabPage(const WorkConfig& config, bool jumpTo)
 {
+    // 读取 Game Data （必需）。
     GameData gameData;
-    try { gameData = GameData::fromFile(config.gameDataPath.toStdString()); }
+    try
+    {
+        gameData = GameData::fromFile(config.gameDataPath.toStdString());
+    }
     catch (const std::exception& e)
     {
         debugOut(
@@ -143,8 +158,12 @@ void MainWindow::addTabPage(const WorkConfig& config, bool jumpTo)
         return;
     }
 
+    // 读取 Assist Program Work Config，如果读取失败则保持默认参数。
     AssistProgramWorkConfig assistProgramWorkConfig;
-    try { assistProgramWorkConfig = AssistProgramWorkConfig::fromFile(config.configPath); }
+    try
+    {
+        assistProgramWorkConfig = AssistProgramWorkConfig::fromFile(config.configPath);
+    }
     catch (const std::exception& e)
     {
         debugOut(
@@ -154,9 +173,11 @@ void MainWindow::addTabPage(const WorkConfig& config, bool jumpTo)
             e.what());
     }
 
+    // 新建工作页面。
     auto page = new AssistProgramOperatePage(gameData, assistProgramWorkConfig);
 
     int index = ui.tabWidget->addTab(page, config.name);
+    // 处理页面切换逻辑。
     if (ui.stackedWidget->currentWidget() != ui.tabWidgetPage)
         ui.stackedWidget->setCurrentWidget(ui.tabWidgetPage);
     if (jumpTo)
@@ -167,8 +188,7 @@ void MainWindow::addTabPage(const WorkConfig& config, bool jumpTo)
 
 void MainWindow::addTabPage(bool jumpTo)
 {
-    // Changed in future.
-
+    // 当前默认创建 Assist Program。
     WorkConfig config;
     config.type = WT_ASSIST;
     config.name = EASYTR("New Work");
@@ -218,6 +238,7 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event)
     {
         switch (event->type())
         {
+            // 启动页面双击创建新工作。
             case QEvent::MouseButtonDblClick:
             {
                 addTabPage(true);
@@ -231,6 +252,7 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event)
     {
         switch (event->type())
         {
+            // 标签栏重命名。
             case QEvent::MouseButtonDblClick:
             {
                 auto mouseEvent = static_cast<QMouseEvent*>(event);

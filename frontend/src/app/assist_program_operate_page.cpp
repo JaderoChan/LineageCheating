@@ -30,7 +30,6 @@ bool verifyNdiConnection(NDIlib_recv_instance_t recv, int timeout)
         if (elapsed >= timeout)
             return false;
 
-        // 动态计算本次最大等待时间，避免单次阻塞超过剩余超时。
         int remaining = timeout - static_cast<int>(elapsed);
         int waitMs = std::min(remaining, 500);
 
@@ -41,19 +40,19 @@ bool verifyNdiConnection(NDIlib_recv_instance_t recv, int timeout)
         {
             case NDIlib_frame_type_video:
                 NDIlib_recv_free_video_v2(recv, &videoFrame);
-                return true;  // 收到视频帧，连接成功
+                return true;
             case NDIlib_frame_type_audio:
                 NDIlib_recv_free_audio_v3(recv, &audioFrame);
-                return true;  // 收到音频帧，连接成功
+                return true;
             case NDIlib_frame_type_metadata:
                 NDIlib_recv_free_metadata(recv, &metadataFrame);
-                return true;  // 收到元数据帧，连接成功
+                return true;
             case NDIlib_frame_type_status_change:
-                return true;  // 状态变化也说明建立了连接
+                return true;
             case NDIlib_frame_type_none:
-                continue;     // 没收到帧，继续等待
+                continue;
             case NDIlib_frame_type_error:
-                return false;  // 错误，连接失败
+                return false;
             default:
                 continue;
         }
@@ -80,6 +79,7 @@ AssistProgramOperatePage::AssistProgramOperatePage(
     ui.footmanHidVidInputLineEdit->setValidator(vidValidator);
     ui.footmanHidPidInputLineEdit->setValidator(pidValidator);
 
+    // 设置运行状态检查频率。
     stateUpdateTimer_.setInterval(200);
 
     // 信号槽
@@ -118,11 +118,16 @@ AssistProgramOperatePage::AssistProgramOperatePage(
 
 AssistProgramOperatePage::~AssistProgramOperatePage()
 {
+    // 退出工作线程
     stop();
+
+    // 销毁 NDI 接收器
     if (masterRecv_)
         NDIlib_recv_destroy(masterRecv_);
     if (footmanRecv_)
         NDIlib_recv_destroy(footmanRecv_);
+
+    // 关闭 HID 设备
     if (isValidHid(hid_))
         hid::closeHID(hid_);
 }
@@ -222,6 +227,7 @@ void AssistProgramOperatePage::updateText()
 
 void AssistProgramOperatePage::onEditConfigButtonClicked()
 {
+    // 编辑 Assist Program Config（并非 Assist Program Work Config）。
     AssistProgramWorkConfig config = config_;
     EditAssistProgramConfigDialog dlg(config.config);
 
@@ -323,7 +329,7 @@ void AssistProgramOperatePage::onSearchNdiSourceButtonClicked(HostFlag flag)
         switch (flag)
         {
             case Master:
-                // 如果出于连接状态，先断开连接。
+                // 如果处于连接状态，先断开连接。
                 if (masterNdiConnected_)
                     onNdiConnectButtonClicked(flag);
 
