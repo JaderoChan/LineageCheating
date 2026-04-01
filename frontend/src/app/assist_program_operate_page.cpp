@@ -39,9 +39,6 @@ bool isNdiConnected(NDIlib_recv_instance_t recv, uint32_t timeout)
             case NDIlib_frame_type_metadata:
                 NDIlib_recv_free_metadata(recv, &metadataFrame);
                 return true;
-            case NDIlib_frame_type_status_change:
-            case NDIlib_frame_type_source_change:
-                return true;
             case NDIlib_frame_type_none:
                 break;
             default:
