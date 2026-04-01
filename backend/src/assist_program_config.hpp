@@ -22,7 +22,7 @@ struct AssistProgramConfig
     int footmanTreatKey = 0x74;                 ///< 仆从治疗药水键，默认为 `VK_F5`。
     int backHomeKey = 0x76;                     ///< 回城键，默认为 `VK_F7`。
 
-    double colorConfidence = 0.90;              ///< 血条/蓝条指定位置的颜色置信度，用于判断血条的指定位置是否为底色。
+    double colorConfidence = 0.95;              ///< 血条/蓝条指定位置的颜色置信度，用于判断血条的指定位置是否为底色。
     double backHomeHpThreshold = 0.805369;      ///< 当血条降低到此阈值时将仆从回城，并退出工作线程，以防游戏人物意外死亡。
 
     bool outputLog = false;                     ///< 启用日志。
