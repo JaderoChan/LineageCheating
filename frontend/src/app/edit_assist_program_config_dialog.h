@@ -10,7 +10,7 @@ class EditAssistProgramConfigDialog : public TrDialog
 public:
     explicit EditAssistProgramConfigDialog(const AssistProgramConfig& config, QWidget* parent = nullptr);
 
-    AssistProgramConfig execForConfig() const;
+    AssistProgramConfig execForConfig(bool& isAccept) const;
 
 protected:
     void updateText() override;

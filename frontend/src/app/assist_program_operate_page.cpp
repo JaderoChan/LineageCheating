@@ -7,6 +7,7 @@
 
 #include <utils/debug_output.h>
 
+#include "edit_assist_program_config_dialog.h"
 #include "search_ndi_sources_dialog.h"
 
 static bool isValidHid(hid::HID hid)
@@ -77,6 +78,8 @@ AssistProgramOperatePage::AssistProgramOperatePage(
     stateUpdateTimer_.setInterval(200);
 
     // 信号槽
+    connect(ui.editConfigButton, &QPushButton::clicked, this, &AssistProgramOperatePage::onEditConfigButtonClicked);
+
     connect(ui.masterNdiSourceNameInputLineEdit, &QLineEdit::textEdited,
         this, [this](const QString& text) { config_.masterNdiSourceName = text; });
     connect(ui.footmanNdiSourceNameInputLineEdit, &QLineEdit::textEdited,
@@ -210,6 +213,17 @@ void AssistProgramOperatePage::updateText()
     // Operate
     ui.startButton->setText(EASYTR("Start Run"));
     ui.stopButton->setText(EASYTR("Stop Run"));
+}
+
+void AssistProgramOperatePage::onEditConfigButtonClicked()
+{
+    AssistProgramWorkConfig config = config_;
+    EditAssistProgramConfigDialog dlg(config.config);
+
+    bool isAccept = false;
+    config.config = dlg.execForConfig(isAccept);
+    if (isAccept)
+        setAssistProgramWorkConfig(config);
 }
 
 void AssistProgramOperatePage::onNdiConnectButtonClicked(HostFlag flag)

@@ -41,6 +41,7 @@ public:
 protected:
     void updateText() override;
 
+    void onEditConfigButtonClicked();
     void onNdiConnectButtonClicked(HostFlag flag);
     void onSearchNdiSourceButtonClicked(HostFlag flag);
     void onHidConnectButtonClicked();

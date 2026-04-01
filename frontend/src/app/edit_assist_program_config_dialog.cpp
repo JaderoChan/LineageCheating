@@ -9,7 +9,7 @@ EditAssistProgramConfigDialog::EditAssistProgramConfigDialog(const AssistProgram
     updateText();
 }
 
-AssistProgramConfig EditAssistProgramConfigDialog::execForConfig() const
+AssistProgramConfig EditAssistProgramConfigDialog::execForConfig(bool& isAccept) const
 {
     return config_;
 }
