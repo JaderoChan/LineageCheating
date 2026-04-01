@@ -25,7 +25,7 @@ void NdiFindWorker::doFind()
     for (uint32_t i = 0; i < ndiSourcesNum; ++i)
     {
         const NDIlib_source_t* source = ndiSources + i;
-        results.append({QString(source->p_ndi_name), QString(source->p_url_address)});
+        results.append({QString::fromUtf8(source->p_ndi_name), QString::fromUtf8(source->p_url_address)});
     }
 
     NDIlib_find_destroy(ndiFinder);

@@ -18,13 +18,23 @@ static bool isValidHid(hid::HID hid)
 bool isNdiConnected(NDIlib_recv_instance_t recv, uint32_t timeout)
 {
     NDIlib_video_frame_v2_t videoFrame;
-    auto frameType = NDIlib_recv_capture_v3(recv, &videoFrame, nullptr, nullptr, timeout);
+    NDIlib_audio_frame_v3_t audioFrame;
+    NDIlib_metadata_frame_t metadataFrame;
 
+    auto frameType = NDIlib_recv_capture_v3(recv, &videoFrame, &audioFrame, &metadataFrame, timeout);
     switch (frameType)
     {
         case NDIlib_frame_type_video:
             NDIlib_recv_free_video_v2(recv, &videoFrame);
             return true;
+        case NDIlib_frame_type_audio:
+            NDIlib_recv_free_audio_v3(recv, &audioFrame);
+            return true;
+        case NDIlib_frame_type_metadata:
+            NDIlib_recv_free_metadata(recv, &metadataFrame);
+            return true;
+        case NDIlib_frame_type_none:
+        case NDIlib_frame_type_error:
         default:
             return false;
     }
@@ -265,7 +275,7 @@ void AssistProgramOperatePage::onNdiConnectButtonClicked(HostFlag flag)
 
         NDIlib_recv_connect(recv, &source);
 
-        if (!isNdiConnected(recv, 500))
+        if (!isNdiConnected(recv, 1000))
         {
             NDIlib_recv_destroy(recv);
             recv = nullptr;
