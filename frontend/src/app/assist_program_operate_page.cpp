@@ -349,6 +349,10 @@ void AssistProgramOperatePage::onSearchNdiSourceButtonClicked(HostFlag flag)
                 break;
         }
     }
+    else
+    {
+        QMessageBox::warning(this, EASYTR("Warning"), EASYTR("No NDI source be selected."), EASYTR("Ok"));
+    }
 }
 
 void AssistProgramOperatePage::onHidConnectButtonClicked()
