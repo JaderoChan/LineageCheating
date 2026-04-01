@@ -19,6 +19,9 @@ bool isNdiConnected(NDIlib_recv_instance_t recv, uint32_t timeout)
 {
     using namespace std::chrono;
 
+    if (!recv)
+        return false;
+
     NDIlib_video_frame_v2_t videoFrame;
     NDIlib_audio_frame_v3_t audioFrame;
     NDIlib_metadata_frame_t metadataFrame;
@@ -27,7 +30,7 @@ bool isNdiConnected(NDIlib_recv_instance_t recv, uint32_t timeout)
     auto start = high_resolution_clock::now();
     while (high_resolution_clock::now() - start < timeoutMs)
     {
-        auto frameType = NDIlib_recv_capture_v3(recv, &videoFrame, &audioFrame, &metadataFrame, 10);
+        auto frameType = NDIlib_recv_capture_v3(recv, &videoFrame, &audioFrame, &metadataFrame, 50);
         switch (frameType)
         {
             case NDIlib_frame_type_video:
@@ -39,13 +42,11 @@ bool isNdiConnected(NDIlib_recv_instance_t recv, uint32_t timeout)
             case NDIlib_frame_type_metadata:
                 NDIlib_recv_free_metadata(recv, &metadataFrame);
                 return true;
-            case NDIlib_frame_type_none:
-                break;
+            case NDIlib_frame_type_status_change:
+                return true;
             default:
-                return false;
+                break;
         }
-
-        std::this_thread::sleep_for(milliseconds(10));
     }
 
     return false;
@@ -286,7 +287,7 @@ void AssistProgramOperatePage::onNdiConnectButtonClicked(HostFlag flag)
 
         NDIlib_recv_connect(recv, &source);
 
-        if (!isNdiConnected(recv, 1000))
+        if (!isNdiConnected(recv, 500))
         {
             NDIlib_recv_destroy(recv);
             recv = nullptr;
