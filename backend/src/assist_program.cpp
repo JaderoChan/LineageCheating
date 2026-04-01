@@ -197,7 +197,7 @@ void AssistProgram::mainWork()
         if (masterFrame.empty())
         {
             if (config.outputLog)
-                printf("Failed to get frame.\n");
+                printf("Failed to get master frame.\n");
 
             shouldClose_.store(true);
             continue;
@@ -207,7 +207,7 @@ void AssistProgram::mainWork()
         if (footmanFrame.empty())
         {
             if (config.outputLog)
-                printf("Failed to get frame.\n");
+                printf("Failed to footman get frame.\n");
 
             shouldClose_.store(true);
             continue;

@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <qtimer.h>
+
 #include <Processing.NDI.Lib.h>
 
 #include <assist_program.hpp>
@@ -63,4 +65,6 @@ private:
     NDIlib_recv_instance_t masterRecv_ = nullptr;
     NDIlib_recv_instance_t footmanRecv_ = nullptr;
     hid::HID hid_ = nullptr;
+
+    QTimer stateUpdateTimer_;
 };

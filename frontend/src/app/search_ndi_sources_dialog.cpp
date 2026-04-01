@@ -94,7 +94,11 @@ void SearchNdiSourcesDialog::onFindFinished(const QList<QPair<QString, QString>>
 {
     if (!success)
     {
-        QMessageBox::warning(this, EASYTR("Warning"), EASYTR("Failed to create NDI finder."));
+        QMessageBox::warning(
+            this,
+            EASYTR("Warning"),
+            EASYTR("Failed to create NDI finder."),
+            EASYTR("Ok"));
     }
     else
     {

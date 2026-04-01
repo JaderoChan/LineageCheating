@@ -74,6 +74,8 @@ AssistProgramOperatePage::AssistProgramOperatePage(
     ui.footmanHidVidInputLineEdit->setValidator(vidValidator);
     ui.footmanHidPidInputLineEdit->setValidator(pidValidator);
 
+    stateUpdateTimer_.setInterval(200);
+
     // 信号槽
     connect(ui.masterNdiSourceNameInputLineEdit, &QLineEdit::textEdited,
         this, [this](const QString& text) { config_.masterNdiSourceName = text; });
@@ -97,6 +99,10 @@ AssistProgramOperatePage::AssistProgramOperatePage(
 
     connect(ui.startButton, &QPushButton::clicked, this, &AssistProgramOperatePage::run);
     connect(ui.stopButton, &QPushButton::clicked, this, &AssistProgramOperatePage::stop);
+
+    connect(&stateUpdateTimer_, &QTimer::timeout, this, &AssistProgramOperatePage::updateStateIconAndText);
+
+    stateUpdateTimer_.start();
 
     updateText();
     updateStateIconAndText();
@@ -144,7 +150,11 @@ void AssistProgramOperatePage::run()
 
     if (!masterNdiConnected_ || !footmanNdiConnected_ || !footmanHidConnected_)
     {
-        QMessageBox::warning(this, EASYTR("Warning"), EASYTR("Please configure master host and footman host first."));
+        QMessageBox::warning(
+            this,
+            EASYTR("Warning"),
+            EASYTR("Please configure master host and footman host first."),
+            EASYTR("Ok"));
         return;
     }
 
@@ -211,12 +221,19 @@ void AssistProgramOperatePage::onNdiConnectButtonClicked(HostFlag flag)
     {
         if (isRunning())
         {
-            auto button = QMessageBox::information(this, EASYTR("Warning"),
-                EASYTR("The work is running, are you sure exit the work and disconnect?"),
-                QMessageBox::Ok, QMessageBox::Cancel);
-            if (button == QMessageBox::Cancel)
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle(EASYTR("Warning"));
+            msgBox.setText(EASYTR("The work is running, are you sure exit the work and disconnect?"));
+
+            auto confirmBtn = msgBox.addButton(EASYTR("Ok"), QMessageBox::AcceptRole);
+            auto cancelBtn = msgBox.addButton(EASYTR("Cancel"), QMessageBox::RejectRole);
+            msgBox.setDefaultButton(cancelBtn);
+
+            msgBox.exec();
+
+            if (msgBox.clickedButton() == cancelBtn)
                 return;
-            stop();
+            stop;
         }
 
         if (recv)
@@ -234,7 +251,11 @@ void AssistProgramOperatePage::onNdiConnectButtonClicked(HostFlag flag)
         recv = NDIlib_recv_create_v3(&recvDesc);
         if (!recv)
         {
-            QMessageBox::critical(this, EASYTR("Error"), EASYTR("Failed to create the NDI recevier."));
+            QMessageBox::critical(
+                this,
+                EASYTR("Error"),
+                EASYTR("Failed to create the NDI recevier."),
+                EASYTR("Ok"));
             return;
         }
 
@@ -247,11 +268,15 @@ void AssistProgramOperatePage::onNdiConnectButtonClicked(HostFlag flag)
 
         NDIlib_recv_connect(recv, &source);
 
-        if (!verifyNdiConnection(recv, 200))
+        if (!verifyNdiConnection(recv, 300))
         {
             NDIlib_recv_destroy(recv);
             recv = nullptr;
-            QMessageBox::critical(this, EASYTR("Error"), EASYTR("Failed to connect the NDI source."));
+            QMessageBox::critical(
+                this,
+                EASYTR("Error"),
+                EASYTR("Failed to connect the NDI source."),
+                EASYTR("Ok"));
             return;
         }
 
@@ -265,7 +290,11 @@ void AssistProgramOperatePage::onSearchNdiSourceButtonClicked(HostFlag flag)
 {
     if (isRunning())
     {
-        QMessageBox::information(this, EASYTR("Warning"), EASYTR("Please stop work first."));
+        QMessageBox::information(
+            this,
+            EASYTR("Warning"),
+            EASYTR("Please stop work first."),
+            EASYTR("Ok"));
         return;
     }
 
@@ -302,12 +331,19 @@ void AssistProgramOperatePage::onHidConnectButtonClicked()
     {
         if (isRunning())
         {
-            auto button = QMessageBox::information(this, EASYTR("Warning"),
-                EASYTR("The work is running, are you sure exit the work and disconnect?"),
-                QMessageBox::Ok, QMessageBox::Cancel);
-            if (button == QMessageBox::Cancel)
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle(EASYTR("Warning"));
+            msgBox.setText(EASYTR("The work is running, are you sure exit the work and disconnect?"));
+
+            auto confirmBtn = msgBox.addButton(EASYTR("Ok"), QMessageBox::AcceptRole);
+            auto cancelBtn = msgBox.addButton(EASYTR("Cancel"), QMessageBox::RejectRole);
+            msgBox.setDefaultButton(cancelBtn);
+
+            msgBox.exec();
+
+            if (msgBox.clickedButton() == cancelBtn)
                 return;
-            stop();
+            stop;
         }
 
         hid::closeHID(hid_);
@@ -318,7 +354,11 @@ void AssistProgramOperatePage::onHidConnectButtonClicked()
         hid_ = hid::openHID(config_.footmanHidInfo.vid, config_.footmanHidInfo.pid);
         if (!isValidHid(hid_))
         {
-            QMessageBox::critical(this, EASYTR("Error"), EASYTR("Can't connect HID device."));
+            QMessageBox::critical(
+                this,
+                EASYTR("Error"),
+                EASYTR("Can't connect HID device."),
+                EASYTR("Ok"));
             hid_ = nullptr;
         }
         else
