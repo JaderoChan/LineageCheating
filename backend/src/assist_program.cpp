@@ -19,10 +19,12 @@ static void showDebugWindow(cv::Mat& frame, const std::string& winName,
 {
     // 画框
     drawRectOnMat(frame, gameData.mainRect);
+    drawRectOnMat(frame, gameData.safeRect);
     drawRectOnMat(frame, gameData.playerRect);
     drawRectOnMat(frame, gameData.bottomRect);
     drawRectOnMat(frame, gameData.buffRect);
     drawRectOnMat(frame, gameData.popupMenuRect);
+    drawRectOnMat(frame, gameData.backpackRect);
     drawRectOnMat(frame, gameData.hpRect);
     drawRectOnMat(frame, gameData.mpRect);
     drawRectOnMat(frame, gameData.chatRect);
@@ -32,13 +34,13 @@ static void showDebugWindow(cv::Mat& frame, const std::string& winName,
 
     // 高亮当前血条采样点。（治疗阈值）
     auto samplingPt = convertProportionPosToCvPoint(gameData.hpMpBarInfo.samplingPos, hpArea.cols, hpArea.rows);
-    cv::circle(hpArea, samplingPt, 4, cv::Scalar(0, 255, 0), cv::FILLED);
+    cv::circle(hpArea, samplingPt, 3, cv::Scalar(0, 255, 0), cv::FILLED);
 
     // 高亮当前血条采样点。（回城阈值）
     auto proportionPos = gameData.hpMpBarInfo.samplingPos;
     proportionPos.x = config.backHomeHpThreshold;
     samplingPt = convertProportionPosToCvPoint(proportionPos, hpArea.cols, hpArea.rows);
-    cv::circle(hpArea, samplingPt, 4, cv::Scalar(0, 255, 0), cv::FILLED);
+    cv::circle(hpArea, samplingPt, 3, cv::Scalar(0, 255, 0), cv::FILLED);
 
     if (config.limitDebugWindowSize)
     {
