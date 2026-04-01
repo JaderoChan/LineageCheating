@@ -66,7 +66,7 @@ option(KEEP_TERMINAL ON)
 if(WIN32)
     set_target_properties(
         ${PROJECT_NAME} PROPERTIES
-        WIN32_EXECUTABLE $<NOT:$<BOOL:KEEP_TERMINAL>>
+        WIN32_EXECUTABLE $<NOT:$<BOOL:${KEEP_TERMINAL}>>
     )
 endif()
 
@@ -74,7 +74,7 @@ endif()
 option(UPDATE_TRANSLATIONS_FILES "Whether update the translations files. Only for dev." OFF)
 target_compile_definitions(
     ${PROJECT_NAME} PRIVATE
-    $<$<BOOL:UPDATE_TRANSLATIONS_FILES>:EASY_TRANSLATE_UPDATE_TRANSLATIONS_FILES>
+    $<$<BOOL:${UPDATE_TRANSLATIONS_FILES}>:EASY_TRANSLATE_UPDATE_TRANSLATIONS_FILES>
 )
 
 # 配置应用资源/属性
