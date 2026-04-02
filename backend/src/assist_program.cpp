@@ -49,7 +49,6 @@ static void showDebugWindow(cv::Mat& frame, const std::string& winName,
     }
 
     cv::imshow(winName, frame);
-    cv::waitKey(1);
 }
 
 AssistProgram::AssistProgram(
@@ -320,6 +319,9 @@ void AssistProgram::mainWork()
                 }
             }
         }
+
+        if (config.showDebugWindow)
+            cv::waitKey(1);
     }
 
     if (masterDebugWindowShowed)
