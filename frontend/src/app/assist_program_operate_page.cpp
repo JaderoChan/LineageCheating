@@ -193,6 +193,8 @@ void AssistProgramOperatePage::stop()
 
     assistProgram_->stop();
 
+    QCoreApplication::processEvents();
+
     if (debugFrameShowed_)
     {
         cv::destroyWindow("Master");
@@ -455,6 +457,7 @@ void AssistProgramOperatePage::updateRunningStateWidgets()
 
             if (debugFrameShowed_)
             {
+                QCoreApplication::processEvents();
                 cv::destroyWindow("Master");
                 cv::destroyWindow("Footman");
                 debugFrameShowed_ = false;
