@@ -47,6 +47,7 @@
     "Search and select NDI source": "搜索并选择 NDI 源",
     "Select Image Point": "图像取点",
     "Select Screen Color": "屏幕取色",
+    "Server listening address: %1:%2": "服务器监听地址：%1:%2",
     "Settings": "设置",
     "Show Debug Window": "显示 Debug 窗口",
     "Start Run": "开始运行",
