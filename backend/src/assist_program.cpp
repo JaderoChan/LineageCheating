@@ -54,6 +54,37 @@ static cv::Mat getDebugFrame(const cv::Mat& frame,
     return debugFrame;
 }
 
+/// @brief 计算图像给定位置 3*3 范围的均色。
+static cv::Vec3b computeMeanColor(const cv::Mat& image, const cv::Point& pos)
+{
+    int validPtSum = 0;
+    cv::Vec3i colorSum(0, 0, 0);
+    cv::Rect imageRect(0, 0, image.cols, image.rows);
+
+    std::vector<cv::Point> pts = {
+        cv::Point(pos.x - 1, pos.y - 1),
+        cv::Point(pos.x, pos.y - 1),
+        cv::Point(pos.x + 1, pos.y - 1),
+        cv::Point(pos.x - 1, pos.y),
+        cv::Point(pos.x + 1, pos.y),
+        cv::Point(pos.x - 1, pos.y + 1),
+        cv::Point(pos.x, pos.y + 1),
+        cv::Point(pos.x + 1, pos.y + 1)
+    };
+
+    for (size_t i = 0; i < pts.size(); ++i)
+    {
+        if (pts[i].inside(imageRect))
+        {
+            colorSum += image.at<cv::Vec3b>(pts[i]);
+            validPtSum++;
+        }
+    }
+
+    colorSum /= validPtSum;
+    return cv::Vec3b(colorSum[0], colorSum[1], colorSum[2]);
+}
+
 AssistProgram::AssistProgram(
     NDIlib_recv_instance_t masterRecv, NDIlib_recv_instance_t footmanRecv, hid::HID footmanHid,
     const GameData& gameData, const AssistProgramConfig& config,
@@ -242,7 +273,7 @@ void AssistProgram::mainWork()
             double x = config.masterTreatHpThresold;
             double y = gameData.hpMpBarInfo.samplingPos.y;
             auto pos = convertProportionPosToCvPoint(ProportionPos(x, y), hpArea.cols, hpArea.rows);
-            auto color = convertCvVecToRgbColor(hpArea.at<cv::Vec3b>(pos));
+            auto color = convertCvVecToRgbColor(computeMeanColor(hpArea, pos));
 
             // 若采样点颜色与血条底色相同则进行治疗。（下同）
             auto similarity = computeColorSimilarity(color, gameData.hpMpBarInfo.baseColor);
@@ -274,7 +305,7 @@ void AssistProgram::mainWork()
                 double x = config.footmanBackHomeHpThreshold;
                 double y = gameData.hpMpBarInfo.samplingPos.y;
                 auto pos = convertProportionPosToCvPoint(ProportionPos(x, y), hpArea.cols, hpArea.rows);
-                auto color = convertCvVecToRgbColor(hpArea.at<cv::Vec3b>(pos));
+                auto color = convertCvVecToRgbColor(computeMeanColor(hpArea, pos));
 
                 // 若新采样点颜色与血条底色相同则进行回城，并退出工作线程。
                 auto similarity = computeColorSimilarity(color, gameData.hpMpBarInfo.baseColor);
@@ -300,7 +331,7 @@ void AssistProgram::mainWork()
             double x = config.footmanTreatHpThresold;
             double y = gameData.hpMpBarInfo.samplingPos.y;
             auto pos = convertProportionPosToCvPoint(ProportionPos(x, y), hpArea.cols, hpArea.rows);
-            auto color = convertCvVecToRgbColor(hpArea.at<cv::Vec3b>(pos));
+            auto color = convertCvVecToRgbColor(computeMeanColor(hpArea, pos));
 
             auto similarity = computeColorSimilarity(color, gameData.hpMpBarInfo.baseColor);
             if (config.outputLog)
