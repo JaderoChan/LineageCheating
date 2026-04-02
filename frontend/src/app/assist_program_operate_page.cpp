@@ -103,8 +103,6 @@ AssistProgramOperatePage::AssistProgramOperatePage(
 
     connect(&runningStateUpdateTimer_, &QTimer::timeout, this, &AssistProgramOperatePage::updateRunningStateWidgets);
 
-    runningStateUpdateTimer_.start();
-
     updateText();
     updateConnectStateWidgets();
 }
@@ -181,6 +179,7 @@ void AssistProgramOperatePage::run()
             }, Qt::QueuedConnection);
         });
     assistProgram_->run();
+    runningStateUpdateTimer_.start();
 
     updateRunningStateWidgets();
 }
@@ -202,8 +201,6 @@ void AssistProgramOperatePage::stop()
     }
 
     assistProgram_.reset();
-
-    runningStateUpdateTimer_.start();
 
     updateRunningStateWidgets();
 }
@@ -462,6 +459,8 @@ void AssistProgramOperatePage::updateRunningStateWidgets()
                 cv::destroyWindow("Footman");
                 debugFrameShowed_ = false;
             }
+
+            runningStateUpdateTimer_.stop();
 
             updateConnectStateWidgets();
         }

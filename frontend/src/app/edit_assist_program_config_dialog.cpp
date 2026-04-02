@@ -84,12 +84,12 @@ EditAssistProgramConfigDialog::EditAssistProgramConfigDialog(const AssistProgram
 
     connect(ui.backhomeHpThresholdSlider, &QSlider::valueChanged, this, [this](int value)
     {
-        config_.backHomeHpThreshold = static_cast<double>(value) / 100'000;
+        config_.footmanBackHomeHpThreshold = static_cast<double>(value) / 100'000;
         updateWidgetValue();
     });
     connect(ui.backhomeHpThresholdLineEdit, &QLineEdit::editingFinished, this, [this]()
     {
-        config_.backHomeHpThreshold = ui.backhomeHpThresholdLineEdit->text().toDouble();
+        config_.footmanBackHomeHpThreshold = ui.backhomeHpThresholdLineEdit->text().toDouble();
         updateWidgetValue();
     });
 
@@ -183,8 +183,8 @@ void EditAssistProgramConfigDialog::updateWidgetValue()
     ui.colorConfidenceSlider->setValue(config_.colorConfidence * 100);
     ui.colorConfidenceLineEdit->setText(QString::number(config_.colorConfidence));
 
-    ui.backhomeHpThresholdSlider->setValue(config_.backHomeHpThreshold * 100'000);
-    ui.backhomeHpThresholdLineEdit->setText(QString::number(config_.backHomeHpThreshold));
+    ui.backhomeHpThresholdSlider->setValue(config_.footmanBackHomeHpThreshold * 100'000);
+    ui.backhomeHpThresholdLineEdit->setText(QString::number(config_.footmanBackHomeHpThreshold));
 
     ui.enableBackhomeOnFootmanHpLowCheckBox->setChecked(config_.enableBackhomeOnFootmanHpLow);
 

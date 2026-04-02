@@ -15,7 +15,7 @@ static void drawRectOnMat(cv::Mat& mat, const ProportionRect& rect,
 }
 
 static cv::Mat getDebugFrame(const cv::Mat& frame,
-    const GameData& gameData, const AssistProgramConfig& config)
+    const GameData& gameData, const AssistProgramConfig& config, double currentHpThreshold)
 {
     cv::Mat debugFrame = frame.clone();
 
@@ -35,14 +35,15 @@ static cv::Mat getDebugFrame(const cv::Mat& frame,
     assert(!hpArea.empty());
 
     // 高亮当前血条采样点。（治疗阈值）
-    auto samplingPt = convertProportionPosToCvPoint(gameData.hpMpBarInfo.samplingPos, hpArea.cols, hpArea.rows);
-    cv::circle(hpArea, samplingPt, 3, cv::Scalar(0, 255, 0), cv::FILLED);
+    double x = currentHpThreshold;
+    double y = gameData.hpMpBarInfo.samplingPos.y;
+    auto pos = convertProportionPosToCvPoint(ProportionPos(x, y), hpArea.cols, hpArea.rows);
+    cv::circle(hpArea, pos, 3, cv::Scalar(0, 255, 0), cv::FILLED);
 
     // 高亮当前血条采样点。（回城阈值）
-    auto proportionPos = gameData.hpMpBarInfo.samplingPos;
-    proportionPos.x = config.backHomeHpThreshold;
-    samplingPt = convertProportionPosToCvPoint(proportionPos, hpArea.cols, hpArea.rows);
-    cv::circle(hpArea, samplingPt, 3, cv::Scalar(0, 255, 0), cv::FILLED);
+    x = config.footmanBackHomeHpThreshold;
+    pos = convertProportionPosToCvPoint(ProportionPos(x, y), hpArea.cols, hpArea.rows);
+    cv::circle(hpArea, pos, 3, cv::Scalar(0, 255, 0), cv::FILLED);
 
     if (config.limitDebugWindowSize)
     {
@@ -238,7 +239,9 @@ void AssistProgram::mainWork()
             cv::Mat hpArea = getMatView(masterFrame, gameData.hpRect);
             assert(!hpArea.empty());
 
-            auto pos = convertProportionPosToCvPoint(gameData.hpMpBarInfo.samplingPos, hpArea.cols, hpArea.rows);
+            double x = config.masterTreatHpThresold;
+            double y = gameData.hpMpBarInfo.samplingPos.y;
+            auto pos = convertProportionPosToCvPoint(ProportionPos(x, y), hpArea.cols, hpArea.rows);
             auto color = convertCvVecToRgbColor(hpArea.at<cv::Vec3b>(pos));
 
             // 若采样点颜色与血条底色相同则进行治疗。（下同）
@@ -268,21 +271,21 @@ void AssistProgram::mainWork()
             if (config.enableBackhomeOnFootmanHpLow)
             {
                 // 新采样点（回城阈值）
-                auto proportionPos = gameData.hpMpBarInfo.samplingPos;
-                proportionPos.x = config.backHomeHpThreshold;
-                auto newPos = convertProportionPosToCvPoint(proportionPos, hpArea.cols, hpArea.rows);
-                auto newColor = convertCvVecToRgbColor(hpArea.at<cv::Vec3b>(newPos));
+                double x = config.footmanBackHomeHpThreshold;
+                double y = gameData.hpMpBarInfo.samplingPos.y;
+                auto pos = convertProportionPosToCvPoint(ProportionPos(x, y), hpArea.cols, hpArea.rows);
+                auto color = convertCvVecToRgbColor(hpArea.at<cv::Vec3b>(pos));
 
                 // 若新采样点颜色与血条底色相同则进行回城，并退出工作线程。
-                auto newSimilarity = computeColorSimilarity(newColor, gameData.hpMpBarInfo.baseColor);
+                auto similarity = computeColorSimilarity(color, gameData.hpMpBarInfo.baseColor);
                 if (config.outputLog)
                 {
                     printf("Footman HP bar low pos color: RGB(%d, %d, %d), similarity: %lf\n",
-                        static_cast<int>(newColor.r), static_cast<int>(newColor.g), static_cast<int>(newColor.b),
-                        newSimilarity);
+                        static_cast<int>(color.r), static_cast<int>(color.g), static_cast<int>(color.b),
+                        similarity);
                 }
 
-                if (newSimilarity >= config.colorConfidence)
+                if (similarity >= config.colorConfidence)
                 {
                     if (config.outputLog)
                         printf("Footman HP is low, back to home and exit thread.\n");
@@ -294,7 +297,9 @@ void AssistProgram::mainWork()
             }
 
             // 原采样点（治疗阈值）
-            auto pos = convertProportionPosToCvPoint(gameData.hpMpBarInfo.samplingPos, hpArea.cols, hpArea.rows);
+            double x = config.footmanTreatHpThresold;
+            double y = gameData.hpMpBarInfo.samplingPos.y;
+            auto pos = convertProportionPosToCvPoint(ProportionPos(x, y), hpArea.cols, hpArea.rows);
             auto color = convertCvVecToRgbColor(hpArea.at<cv::Vec3b>(pos));
 
             auto similarity = computeColorSimilarity(color, gameData.hpMpBarInfo.baseColor);
@@ -317,8 +322,8 @@ void AssistProgram::mainWork()
 
         if (config.showDebugWindow && debugFrameCallback_)
         {
-            cv::Mat masterDebugFrame = getDebugFrame(masterFrame, gameData, config);
-            cv::Mat footmanDebugFrame = getDebugFrame(footmanFrame, gameData, config);
+            cv::Mat masterDebugFrame = getDebugFrame(masterFrame, gameData, config, config.masterTreatHpThresold);
+            cv::Mat footmanDebugFrame = getDebugFrame(footmanFrame, gameData, config, config.footmanTreatHpThresold);
             debugFrameCallback_(masterDebugFrame, footmanDebugFrame);
         }
     }
