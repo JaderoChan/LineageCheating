@@ -19,7 +19,8 @@ AssistProgramConfig AssistProgramConfig::fromJson(const nlohmann::json& json)
     READ_FIELD_FROM_JSON(result, footmanTreatKey, json, 0x74);
     READ_FIELD_FROM_JSON(result, backHomeKey, json, 0x76);
 
-    READ_FIELD_FROM_JSON(result, colorConfidence, json, 0.90);
+    READ_FIELD_FROM_JSON(result, colorConfidence, json, 0.95);
+    READ_FIELD_FROM_JSON(result, backHomeHpThreshold, json, 0.935369);
 
     READ_FIELD_FROM_JSON(result, outputLog, json, true);
     READ_FIELD_FROM_JSON(result, showDebugWindow, json, false);
@@ -60,6 +61,7 @@ nlohmann::json AssistProgramConfig::toJson() const
     WRITE_FIELD_TO_JSON(*this, backHomeKey, j);
 
     WRITE_FIELD_TO_JSON(*this, colorConfidence, j);
+    WRITE_FIELD_TO_JSON(*this, backHomeHpThreshold, j);
 
     WRITE_FIELD_TO_JSON(*this, outputLog, j);
     WRITE_FIELD_TO_JSON(*this, showDebugWindow, j);

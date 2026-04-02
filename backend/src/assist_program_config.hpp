@@ -25,7 +25,7 @@ struct AssistProgramConfig
     int backHomeKey = 0x76;                     ///< 回城键，默认为 `VK_F7`。
 
     double colorConfidence = 0.95;              ///< 血条/蓝条指定位置的颜色置信度，用于判断血条的指定位置是否为底色。
-    double backHomeHpThreshold = 0.805369;      ///< 当血条降低到此阈值时将仆从回城，并退出工作线程，以防游戏人物意外死亡。
+    double backHomeHpThreshold = 0.935369;      ///< 当血条降低到此阈值时将仆从回城，并退出工作线程，以防游戏人物意外死亡。
 
     bool outputLog = true;                      ///< 启用日志。
     bool showDebugWindow = false;               ///< 是否显示Debug窗口，可显示处理后的游戏帧。
