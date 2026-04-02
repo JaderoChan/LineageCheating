@@ -164,7 +164,22 @@ void AssistProgramOperatePage::run()
         return;
     }
 
-    assistProgram_ = std::make_unique<AssistProgram>(masterRecv_, footmanRecv_, hid_, gameData_, config_.config);
+    assistProgram_ = std::make_unique<AssistProgram>(
+        masterRecv_,
+        footmanRecv_,
+        hid_,
+        gameData_,
+        config_.config,
+        [this](const cv::Mat& masterDebugFrame, const cv::Mat& footmanDebugFrame)
+        {
+            QMetaObject::invokeMethod(this, [this, masterDebugFrame, footmanDebugFrame]()
+            {
+                cv::imshow("Master", masterDebugFrame);
+                cv::imshow("Footman", masterDebugFrame);
+                cv::waitKey(1);
+                debugFrameShowed_ = true;
+            }, Qt::QueuedConnection);
+        });
     assistProgram_->run();
 
     updateRunningStateWidgets();
@@ -175,8 +190,20 @@ void AssistProgramOperatePage::stop()
     if (!isRunning())
         return;
 
+    runningStateUpdateTimer_.stop();
+
     assistProgram_->stop();
+
+    if (debugFrameShowed_)
+    {
+        cv::destroyWindow("Master");
+        cv::destroyWindow("Footman");
+        debugFrameShowed_ = false;
+    }
+
     assistProgram_.reset();
+
+    runningStateUpdateTimer_.start();
 
     updateRunningStateWidgets();
 }
@@ -427,6 +454,13 @@ void AssistProgramOperatePage::updateRunningStateWidgets()
                     NDIlib_recv_destroy(footmanRecv_);
                     footmanRecv_ = nullptr;
                 }
+            }
+
+            if (debugFrameShowed_)
+            {
+                cv::destroyWindow("Master");
+                cv::destroyWindow("Footman");
+                debugFrameShowed_ = false;
             }
 
             updateConnectStateWidgets();

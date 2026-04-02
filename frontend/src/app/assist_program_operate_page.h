@@ -60,6 +60,7 @@ private:
     QPixmap alertPixmap_;
     QPixmap passPixmap_;
 
+    bool debugFrameShowed_ = false;
     bool masterNdiConnected_ = false;
     bool footmanNdiConnected_ = false;
     bool footmanHidConnected_ = false;

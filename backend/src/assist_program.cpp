@@ -14,22 +14,24 @@ static void drawRectOnMat(cv::Mat& mat, const ProportionRect& rect,
     cv::rectangle(mat, convertProportionRectToCvRect(rect, mat.cols, mat.rows), color, thickness);
 }
 
-static void showDebugWindow(cv::Mat& frame, const std::string& winName,
+static cv::Mat getDebugFrame(const cv::Mat& frame,
     const GameData& gameData, const AssistProgramConfig& config)
 {
-    // 画框
-    drawRectOnMat(frame, gameData.mainRect);
-    drawRectOnMat(frame, gameData.safeRect);
-    drawRectOnMat(frame, gameData.playerRect);
-    drawRectOnMat(frame, gameData.bottomRect);
-    drawRectOnMat(frame, gameData.buffRect);
-    drawRectOnMat(frame, gameData.popupMenuRect);
-    drawRectOnMat(frame, gameData.backpackRect);
-    drawRectOnMat(frame, gameData.hpRect);
-    drawRectOnMat(frame, gameData.mpRect);
-    drawRectOnMat(frame, gameData.chatRect);
+    cv::Mat debugFrame = frame.clone();
 
-    cv::Mat hpArea = getMatView(frame, gameData.hpRect);
+    // 画框
+    drawRectOnMat(debugFrame, gameData.mainRect);
+    drawRectOnMat(debugFrame, gameData.safeRect);
+    drawRectOnMat(debugFrame, gameData.playerRect);
+    drawRectOnMat(debugFrame, gameData.bottomRect);
+    drawRectOnMat(debugFrame, gameData.buffRect);
+    drawRectOnMat(debugFrame, gameData.popupMenuRect);
+    drawRectOnMat(debugFrame, gameData.backpackRect);
+    drawRectOnMat(debugFrame, gameData.hpRect);
+    drawRectOnMat(debugFrame, gameData.mpRect);
+    drawRectOnMat(debugFrame, gameData.chatRect);
+
+    cv::Mat hpArea = getMatView(debugFrame, gameData.hpRect);
     assert(!hpArea.empty());
 
     // 高亮当前血条采样点。（治疗阈值）
@@ -45,17 +47,18 @@ static void showDebugWindow(cv::Mat& frame, const std::string& winName,
     if (config.limitDebugWindowSize)
     {
         assert(config.debugWindowMaxWidth > 0 && config.debugWindowMaxHeight > 0);
-        frame = limitImageSize(frame, config.debugWindowMaxWidth, config.debugWindowMaxHeight);
+        debugFrame = limitImageSize(debugFrame, config.debugWindowMaxWidth, config.debugWindowMaxHeight);
     }
 
-    cv::imshow(winName, frame);
+    return debugFrame;
 }
 
 AssistProgram::AssistProgram(
     NDIlib_recv_instance_t masterRecv, NDIlib_recv_instance_t footmanRecv, hid::HID footmanHid,
-    const GameData& gameData, const AssistProgramConfig& config)
+    const GameData& gameData, const AssistProgramConfig& config,
+    const std::function<void (const cv::Mat& masterDebugFrame, const cv::Mat& footmanDebugFrame)>& debugFrameCallback)
     : masterRecv_(masterRecv), footmanRecv_(footmanRecv), footmanHid_(footmanHid),
-    gameData_(gameData), config_(config)
+    gameData_(gameData), config_(config), debugFrameCallback_(debugFrameCallback)
 {}
 
 AssistProgram::~AssistProgram()
@@ -177,10 +180,6 @@ void AssistProgram::mainWork()
         return cv::Mat();
     };
 
-    // Debug使用
-    bool masterDebugWindowShowed = false;
-    bool footmanDebugWindowShowed = false;
-
     auto lastMasterTreatTime = high_resolution_clock::now();
     auto lastFootmanTreatTime = high_resolution_clock::now();
     while (!shouldClose_.load())
@@ -238,20 +237,6 @@ void AssistProgram::mainWork()
                 hid::clickKey(footmanHid_, config.masterTreatKey);
                 lastMasterTreatTime = high_resolution_clock::now();
             }
-
-            if (config.showDebugWindow)
-            {
-                showDebugWindow(masterFrame, "Master", gameData, config);
-                masterDebugWindowShowed = true;
-            }
-            else
-            {
-                if (masterDebugWindowShowed)
-                {
-                    cv::destroyWindow("Master");
-                    masterDebugWindowShowed = false;
-                }
-            }
         }
 
         // Footman
@@ -304,30 +289,15 @@ void AssistProgram::mainWork()
                 hid::clickKey(footmanHid_, config.footmanTreatKey);
                 lastFootmanTreatTime = high_resolution_clock::now();
             }
-
-            if (config.showDebugWindow)
-            {
-                showDebugWindow(footmanFrame, "Footman", gameData, config);
-                footmanDebugWindowShowed = true;
-            }
-            else
-            {
-                if (footmanDebugWindowShowed)
-                {
-                    cv::destroyWindow("Footman");
-                    footmanDebugWindowShowed = false;
-                }
-            }
         }
 
-        if (config.showDebugWindow)
-            cv::waitKey(1);
+        if (config.showDebugWindow && debugFrameCallback_)
+        {
+            cv::Mat masterDebugFrame = getDebugFrame(masterFrame, gameData, config);
+            cv::Mat footmanDebugFrame = getDebugFrame(footmanFrame, gameData, config);
+            debugFrameCallback_(masterDebugFrame, footmanDebugFrame);
+        }
     }
-
-    if (masterDebugWindowShowed)
-        cv::destroyWindow("Master");
-    if (footmanDebugWindowShowed)
-        cv::destroyWindow("Footman");
 }
 
 void AssistProgram::clickKeyWork()

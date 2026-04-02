@@ -1,10 +1,12 @@
 #pragma once
 
 #include <atomic>
+#include <functional>
 #include <mutex>
 #include <thread>
 
 #include <Processing.NDI.Lib.h>
+#include <opencv2/opencv.hpp>
 
 #include "assist_program_config.hpp"
 #include "game_data.hpp"
@@ -15,7 +17,8 @@ class AssistProgram
 public:
     AssistProgram(
         NDIlib_recv_instance_t masterRecv, NDIlib_recv_instance_t footmanRecv, hid::HID footmanHid,
-        const GameData& gameData, const AssistProgramConfig& config);
+        const GameData& gameData, const AssistProgramConfig& config,
+        const std::function<void (const cv::Mat& masterDebugFrame, const cv::Mat& footmanDebugFrame)>& = nullptr);
     ~AssistProgram();
 
     GameData getGameData() const;
@@ -55,4 +58,7 @@ private:
     NDIlib_recv_instance_t masterRecv_;
     NDIlib_recv_instance_t footmanRecv_;
     hid::HID footmanHid_;
+
+    std::function<void (const cv::Mat& masterDebugFrame, const cv::Mat& footmanDebugFrame)>
+    debugFrameCallback_ = nullptr;
 };
