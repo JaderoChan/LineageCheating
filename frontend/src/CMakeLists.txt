@@ -41,6 +41,7 @@ target_include_directories(
 target_link_libraries(
     ${PROJECT_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::WebSockets
     easy_translate::easy_translate
     LineageCheatingBackend
 )

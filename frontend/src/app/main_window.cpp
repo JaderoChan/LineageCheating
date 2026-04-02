@@ -4,12 +4,14 @@
 #include <qlineedit.h>
 #include <qthread.h>
 #include <qtabbar.h>
+#include <qnetworkinterface.h>
 
 #include <utils/debug_output.h>
 #include <utils/file_io.h>
 
 #include "config.h"
 #include "search_ndi_sources_dialog.h"
+#include "settings.h"
 
 /// @brief 根据给定参数构建一个当前不存在的文件路径。
 static QString makeAvailablePath(const QDir& dir, const QString& filename, const QString& fileext)
@@ -25,8 +27,26 @@ static QString makeAvailablePath(const QDir& dir, const QString& filename, const
     }
 }
 
+static QString getLocalIP()
+{
+    for (const QNetworkInterface &iface : QNetworkInterface::allInterfaces())
+    {
+        for (const QNetworkAddressEntry &entry : iface.addressEntries())
+        {
+            QHostAddress addr = entry.ip();
+            // 过滤IPv4、非回环、非链路本地。
+            if (addr.protocol() == QAbstractSocket::IPv4Protocol
+                && !addr.isLoopback()
+                && !addr.toString().startsWith("169.254"))
+                return addr.toString();
+        }
+    }
+    return QString();
+}
+
 MainWindow::MainWindow(QWidget* parent)
-    : TrMainWindow(parent), tabWidgetAddBtn_(new QPushButton(this))
+    : TrMainWindow(parent), tabWidgetAddBtn_(new QPushButton(this)),
+    server_("LineCheatingServer", QWebSocketServer::NonSecureMode, this)
 {
     ui.setupUi(this);
 
@@ -73,6 +93,13 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Action 信号槽
     connect(ui.actionSearchNdiSources, &QAction::triggered, this, &MainWindow::onSearchNdiActivated);
+
+    // 配置 Web Socket 服务器
+    Settings settings = loadSettings();
+    if (!server_.listen(QHostAddress::Any, settings.serverPort))
+        debugOut(qCritical(), "Failed to listen address: %1:%2.", getLocalIP(), settings.serverPort);
+
+    connect(&server_, &QWebSocketServer::newConnection, this, &MainWindow::onNewConnection);
 
     updateText();
 }
@@ -138,6 +165,18 @@ MainWindow::~MainWindow()
     // 退出并清理工作线程
     for (auto it = pageAndConfigMap_.begin(); it != pageAndConfigMap_.end(); ++it)
         cleanupWorkPage(it.key());
+
+    // 关闭客户端连接
+    for (auto socket : clients_)
+    {
+        socket->disconnect();
+        socket->close();
+        socket->deleteLater();
+    }
+    clients_.clear();
+
+    // 关闭服务器
+    server_.close();
 }
 
 void MainWindow::addTabPage(const WorkConfig& config, bool jumpTo)
@@ -230,6 +269,10 @@ void MainWindow::updateText()
     ui.actionAbout->setText(EASYTR("About"));
 
     ui.introTextLabel->setText(EASYTR("Current no work be set, please double click page to add a new work."));
+
+    if (server_.isListening())
+        ui.statusBar->showMessage(QString(EASYTR("Server listening address: %1:%2")).arg(
+            getLocalIP(), QString::number(loadSettings().serverPort)));
 }
 
 bool MainWindow::eventFilter(QObject* obj, QEvent* event)
@@ -278,6 +321,41 @@ void MainWindow::onSearchNdiActivated()
 {
     SearchNdiSourcesDialog dlg;
     QVariant source = dlg.getSelectedNdiSource();
+}
+
+void MainWindow::onNewConnection()
+{
+    while (server_.hasPendingConnections())
+    {
+        auto socket = server_.nextPendingConnection();
+
+        clients_.insert(socket);
+        debugOut(qInfo(), "New client connected: %1.", socket->peerAddress().toString());
+
+        connect(socket, &QWebSocket::textMessageReceived, this, &MainWindow::onTextMessageReceived);
+        connect(socket, &QWebSocket::disconnected, this, &MainWindow::onClientDisconnected);
+    }
+}
+
+void MainWindow::onClientDisconnected()
+{
+    auto socket = qobject_cast<QWebSocket*>(sender());
+    if (!socket)
+        return;
+
+    debugOut(qInfo(), "Client disconnected: %1.", socket->peerAddress().toString());
+    clients_.remove(socket);
+    socket->deleteLater();
+}
+
+void MainWindow::onTextMessageReceived(const QString& msg)
+{
+    auto socket = qobject_cast<QWebSocket*>(sender());
+    if (!socket)
+        return;
+
+    debugOut(qInfo(), "Received text message from: %1.", socket->peerAddress().toString());
+    // TODO
 }
 
 void MainWindow::cleanupWorkPage(QWidget* wgt)
@@ -331,4 +409,11 @@ void MainWindow::startRenameTab(int index)
         }
         editor->deleteLater();
     });
+}
+
+void MainWindow::disconnectClient(QWebSocket* socket)
+{
+    if (!socket || !clients_.contains(socket))
+        return;
+    socket->close(QWebSocketProtocol::CloseCodeNormal, "Server closed connection");
 }

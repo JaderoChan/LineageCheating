@@ -3,6 +3,9 @@
 #include <qevent.h>
 #include <qmap.h>
 #include <qpushbutton.h>
+#include <qset.h>
+#include <qwebsocket.h>
+#include <qwebsocketserver.h>
 
 #include <trwidgets/trmainwindow.h>
 
@@ -30,11 +33,20 @@ protected:
 
     void onSearchNdiActivated();
 
+    void onNewConnection();
+    void onClientDisconnected();
+    void onTextMessageReceived(const QString& msg);
+
 private:
     void cleanupWorkPage(QWidget* wgt);
     void startRenameTab(int index);
 
+    void disconnectClient(QWebSocket* socket);
+
     Ui::MainWindow ui;
     QPushButton* tabWidgetAddBtn_;
     QMap<QWidget*, WorkConfig> pageAndConfigMap_;
+
+    QWebSocketServer server_;
+    QSet<QWebSocket*> clients_;
 };
