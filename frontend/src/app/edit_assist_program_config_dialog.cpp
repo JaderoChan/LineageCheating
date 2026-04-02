@@ -93,6 +93,9 @@ EditAssistProgramConfigDialog::EditAssistProgramConfigDialog(const AssistProgram
         updateWidgetValue();
     });
 
+    connect(ui.enableBackhomeOnFootmanHpLowCheckBox, &QCheckBox::stateChanged, this, [this]()
+    { config_.enableBackhomeOnFootmanHpLow = ui.enableBackhomeOnFootmanHpLowCheckBox->isChecked(); });
+
     connect(ui.debugLogOutputCheckBox, &QCheckBox::stateChanged, this, [this]()
     { config_.outputLog= ui.debugLogOutputCheckBox->isChecked(); });
     connect(ui.debugWindowDisplayCheckBox, &QCheckBox::stateChanged, this, [this]()
@@ -140,10 +143,12 @@ void EditAssistProgramConfigDialog::updateText()
     ui.backhomeFootmanHotkeyTextLabel->setText(EASYTR("Backhome Footman Hotkey"));
 
     ui.colorConfidenceTextLabel->setText(EASYTR("Color Confidence"));
-    ui.backhomeHpThresholdTextLabel->setText(EASYTR("Footman Backhome HP threshold"));
+    ui.backhomeHpThresholdTextLabel->setText(EASYTR("Footman Backhome HP Threshold"));
+
+    ui.enableBackhomeOnFootmanHpLowCheckBox->setText(EASYTR("Enable Backhome On Footman HP Is Low"));
 
     ui.debugGroupBox->setTitle(EASYTR("Debug"));
-    ui.debugLogOutputCheckBox->setText(EASYTR("Enabel Debug Log Ouput"));
+    ui.debugLogOutputCheckBox->setText(EASYTR("Enable Debug Log Ouput"));
     ui.debugWindowDisplayCheckBox->setText(EASYTR("Show Debug Window"));
     ui.limitDebugWindowSizeCheckBox->setText(EASYTR("Limit Debug Window Size"));
     ui.debugWindowMaxWidthTextLabel->setText(EASYTR("Max Width"));
@@ -180,6 +185,8 @@ void EditAssistProgramConfigDialog::updateWidgetValue()
 
     ui.backhomeHpThresholdSlider->setValue(config_.backHomeHpThreshold * 100'000);
     ui.backhomeHpThresholdLineEdit->setText(QString::number(config_.backHomeHpThreshold));
+
+    ui.enableBackhomeOnFootmanHpLowCheckBox->setChecked(config_.enableBackhomeOnFootmanHpLow);
 
     ui.debugLogOutputCheckBox->setChecked(config_.outputLog);
     ui.debugWindowDisplayCheckBox->setChecked(config_.showDebugWindow);

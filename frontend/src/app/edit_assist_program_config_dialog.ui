@@ -40,9 +40,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-36</y>
         <width>503</width>
-        <height>346</height>
+        <height>372</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -124,6 +124,120 @@
                </layout>
               </widget>
              </item>
+             <item row="0" column="2">
+              <widget class="QLineEdit" name="treatTimeIntervalInpputLineEdit"/>
+             </item>
+             <item row="6" column="0" colspan="3">
+              <widget class="QWidget" name="widget_8" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="backhomeHpThresholdTextLabel">
+                  <property name="text">
+                   <string>TextLabel</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QSlider" name="backhomeHpThresholdSlider">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="backhomeHpThresholdLineEdit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>64</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>72</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <spacer name="horizontalSpacer">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="1" column="1">
+              <spacer name="horizontalSpacer_2">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="2" column="1">
+              <spacer name="horizontalSpacer_3">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="cpsTextLabel">
+               <property name="text">
+                <string>TextLabel</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="2">
+              <widget class="QLineEdit" name="cpsInputLineEdit"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="frameGetterTimeoutTextLabel">
+               <property name="text">
+                <string>TextLabel</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="treatTimeIntervalTextLabel">
+               <property name="text">
+                <string>TextLabel</string>
+               </property>
+              </widget>
+             </item>
              <item row="4" column="0" colspan="3">
               <widget class="QGroupBox" name="hotkeyGroupBox">
                <property name="title">
@@ -202,122 +316,15 @@
                </layout>
               </widget>
              </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="treatTimeIntervalTextLabel">
-               <property name="text">
-                <string>TextLabel</string>
-               </property>
-              </widget>
-             </item>
              <item row="1" column="2">
               <widget class="QLineEdit" name="frameGetterTimeoutInputLineEdit"/>
              </item>
-             <item row="2" column="2">
-              <widget class="QLineEdit" name="cpsInputLineEdit"/>
-             </item>
-             <item row="6" column="0" colspan="3">
-              <widget class="QWidget" name="widget_8" native="true">
-               <layout class="QHBoxLayout" name="horizontalLayout_5">
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="backhomeHpThresholdTextLabel">
-                  <property name="text">
-                   <string>TextLabel</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QSlider" name="backhomeHpThresholdSlider">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="backhomeHpThresholdLineEdit">
-                  <property name="minimumSize">
-                   <size>
-                    <width>64</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>72</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </item>
-             <item row="0" column="2">
-              <widget class="QLineEdit" name="treatTimeIntervalInpputLineEdit"/>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="cpsTextLabel">
+             <item row="7" column="0">
+              <widget class="QCheckBox" name="enableBackhomeOnFootmanHpLowCheckBox">
                <property name="text">
-                <string>TextLabel</string>
+                <string>CheckBox</string>
                </property>
               </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="frameGetterTimeoutTextLabel">
-               <property name="text">
-                <string>TextLabel</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <spacer name="horizontalSpacer">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item row="1" column="1">
-              <spacer name="horizontalSpacer_2">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item row="2" column="1">
-              <spacer name="horizontalSpacer_3">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
              </item>
             </layout>
            </widget>

@@ -9,6 +9,8 @@ AssistProgramConfig AssistProgramConfig::fromJson(const nlohmann::json& json)
 {
     AssistProgramConfig result;
 
+    READ_FIELD_FROM_JSON(result, enableBackhomeOnFootmanHpLow, json, true);
+
     READ_FIELD_FROM_JSON(result, treatTimeInterval, json, 1000);
     READ_FIELD_FROM_JSON(result, frameGetterTimeout, json, 10 * 1000);
     READ_FIELD_FROM_JSON(result, cps, json, 10);
@@ -46,6 +48,8 @@ AssistProgramConfig AssistProgramConfig::fromFile(const std::string& filepath)
 nlohmann::json AssistProgramConfig::toJson() const
 {
     nlohmann::json j;
+
+    WRITE_FIELD_TO_JSON(*this, enableBackhomeOnFootmanHpLow, j);
 
     WRITE_FIELD_TO_JSON(*this, treatTimeInterval, j);
     WRITE_FIELD_TO_JSON(*this, frameGetterTimeout, j);

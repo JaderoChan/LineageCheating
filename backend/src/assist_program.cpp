@@ -244,34 +244,37 @@ void AssistProgram::mainWork()
             cv::Mat hpArea = getMatView(footmanFrame, gameData.hpRect);
             assert(!hpArea.empty());
 
+            if (config.enableBackhomeOnFootmanHpLow)
+            {
+                // 新采样点（回城阈值）
+                auto proportionPos = gameData.hpMpBarInfo.samplingPos;
+                proportionPos.x = config.backHomeHpThreshold;
+                auto newPos = convertProportionPosToCvPoint(proportionPos, hpArea.cols, hpArea.rows);
+                auto newColor = convertCvVecToRgbColor(hpArea.at<cv::Vec3b>(newPos));
+
+                // 若新采样点颜色与血条底色相同则进行回城，并退出工作线程。
+                auto newSimilarity = computeColorSimilarity(newColor, gameData.hpMpBarInfo.baseColor);
+                if (config.outputLog)
+                {
+                    printf("Footman HP bar low pos color: RGB(%d, %d, %d), similarity: %lf\n",
+                        static_cast<int>(newColor.r), static_cast<int>(newColor.g), static_cast<int>(newColor.b),
+                        newSimilarity);
+                }
+
+                if (newSimilarity >= config.colorConfidence)
+                {
+                    if (config.outputLog)
+                        printf("Footman HP is low, back to home and exit thread.\n");
+
+                    hid::clickKey(footmanHid_, config.backHomeKey);
+                    shouldClose_.store(true);
+                    continue;
+                }
+            }
+
             // 原采样点（治疗阈值）
             auto pos = convertProportionPosToCvPoint(gameData.hpMpBarInfo.samplingPos, hpArea.cols, hpArea.rows);
-            // 新采样点（回城阈值）
-            auto proportionPos = gameData.hpMpBarInfo.samplingPos;
-            proportionPos.x = config.backHomeHpThreshold;
-            auto newPos = convertProportionPosToCvPoint(proportionPos, hpArea.cols, hpArea.rows);
-
             auto color = convertCvVecToRgbColor(hpArea.at<cv::Vec3b>(pos));
-            auto newColor = convertCvVecToRgbColor(hpArea.at<cv::Vec3b>(newPos));
-
-            // 若新采样点颜色与血条底色相同则进行回城，并退出工作线程。
-            auto newSimilarity = computeColorSimilarity(newColor, gameData.hpMpBarInfo.baseColor);
-            if (config.outputLog)
-            {
-                printf("Footman HP bar low pos color: RGB(%d, %d, %d), similarity: %lf\n",
-                    static_cast<int>(newColor.r), static_cast<int>(newColor.g), static_cast<int>(newColor.b),
-                    newSimilarity);
-            }
-
-            if (newSimilarity >= config.colorConfidence)
-            {
-                if (config.outputLog)
-                    printf("Footman HP is low, back to home and exit thread.\n");
-
-                hid::clickKey(footmanHid_, config.backHomeKey);
-                shouldClose_.store(true);
-                continue;
-            }
 
             auto similarity = computeColorSimilarity(color, gameData.hpMpBarInfo.baseColor);
             if (config.outputLog)
