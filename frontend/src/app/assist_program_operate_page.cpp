@@ -173,7 +173,7 @@ void AssistProgramOperatePage::run()
             QMetaObject::invokeMethod(this, [this, masterDebugFrame, footmanDebugFrame]()
             {
                 cv::imshow("Master", masterDebugFrame);
-                cv::imshow("Footman", masterDebugFrame);
+                cv::imshow("Footman", footmanDebugFrame);
                 cv::waitKey(1);
                 debugFrameShowed_ = true;
             }, Qt::QueuedConnection);
