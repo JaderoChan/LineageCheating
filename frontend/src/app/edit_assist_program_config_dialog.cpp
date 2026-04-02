@@ -30,37 +30,69 @@ EditAssistProgramConfigDialog::EditAssistProgramConfigDialog(const AssistProgram
     ui.setupUi(this);
 
     // 设置输入控件限制器。
-    auto validator1 = new QIntValidator(0, 5000, this);
-    ui.treatTimeIntervalInpputLineEdit->setValidator(validator1);
+    {
+        auto validator = new QIntValidator(0, 5000, this);
+        ui.treatTimeIntervalInpputLineEdit->setValidator(validator);
+    }
 
-    auto validator2 = new QIntValidator(50, 5000, this);
-    ui.frameGetterTimeoutInputLineEdit->setValidator(validator2);
+    {
+        auto validator = new QIntValidator(50, 5000, this);
+        ui.frameGetterTimeoutInputLineEdit->setValidator(validator);
+    }
 
-    auto validator3 = new QIntValidator(0, 60, this);
-    ui.cpsInputLineEdit->setValidator(validator3);
+    {
+        auto validator = new QIntValidator(0, 60, this);
+        ui.cpsInputLineEdit->setValidator(validator);
+    }
 
-    auto validator4 = new QDoubleValidator(0.0, 1.0, 2, this);
-    ui.colorConfidenceLineEdit->setValidator(validator4);
+    {
+        auto validator = new QDoubleValidator(0.0, 1.0, 2, this);
+        ui.colorConfidenceLineEdit->setValidator(validator);
 
-    ui.colorConfidenceSlider->setMinimum(0);
-    ui.colorConfidenceSlider->setMaximum(100);
+        ui.colorConfidenceSlider->setMinimum(0);
+        ui.colorConfidenceSlider->setMaximum(100);
+    }
 
-    auto validator5 = new QDoubleValidator(0.0, 1.0, 6, this);
-    ui.backhomeHpThresholdLineEdit->setValidator(validator5);
+    {
+        auto validator = new QDoubleValidator(0.0, 1.0, 6, this);
+        ui.masterTreatThresoldLineEdit->setValidator(validator);
 
-    ui.backhomeHpThresholdSlider->setMinimum(0);
-    ui.backhomeHpThresholdSlider->setMaximum(100'000);
+        ui.masterTreatThresoldSlider->setMinimum(0);
+        ui.masterTreatThresoldSlider->setMaximum(100'000);
+    }
 
-    auto validator6 = new QIntValidator(0, 4000, this);
-    ui.debugWindowMaxWidthLineEdit->setValidator(validator6);
+    {
+        auto validator = new QDoubleValidator(0.0, 1.0, 6, this);
+        ui.footmanTreatThresoldLineEdit->setValidator(validator);
 
-    auto validator7 = new QIntValidator(0, 4000, this);
-    ui.debugWindowMaxHeightLineEdit->setValidator(validator7);
+        ui.footmanTreatThresoldSlider->setMinimum(0);
+        ui.footmanTreatThresoldSlider->setMaximum(100'000);
+    }
+
+    {
+        auto validator = new QDoubleValidator(0.0, 1.0, 6, this);
+        ui.backhomeHpThresholdLineEdit->setValidator(validator);
+
+        ui.backhomeHpThresholdSlider->setMinimum(0);
+        ui.backhomeHpThresholdSlider->setMaximum(100'000);
+    }
+
+    {
+        auto validator = new QIntValidator(0, 4000, this);
+        ui.debugWindowMaxWidthLineEdit->setValidator(validator);
+    }
+
+    {
+        auto validator = new QIntValidator(0, 4000, this);
+        ui.debugWindowMaxHeightLineEdit->setValidator(validator);
+    }
 
     // 设置输入控件初始值。
     updateWidgetValue();
 
     ui.colorConfidenceSlider->installEventFilter(this);
+    ui.masterTreatThresoldSlider->installEventFilter(this);
+    ui.footmanTreatThresoldSlider->installEventFilter(this);
     ui.backhomeHpThresholdSlider->installEventFilter(this);
 
     // 信号槽
@@ -79,6 +111,28 @@ EditAssistProgramConfigDialog::EditAssistProgramConfigDialog(const AssistProgram
     connect(ui.colorConfidenceLineEdit, &QLineEdit::editingFinished, this, [this]()
     {
         config_.colorConfidence = ui.colorConfidenceLineEdit->text().toDouble();
+        updateWidgetValue();
+    });
+
+    connect(ui.masterTreatThresoldSlider, &QSlider::valueChanged, this, [this](int value)
+    {
+        config_.masterTreatHpThresold = static_cast<double>(value) / 100'000;
+        updateWidgetValue();
+    });
+    connect(ui.masterTreatThresoldLineEdit, &QLineEdit::editingFinished, this, [this]()
+    {
+        config_.masterTreatHpThresold = ui.masterTreatThresoldLineEdit->text().toDouble();
+        updateWidgetValue();
+    });
+
+    connect(ui.footmanTreatThresoldSlider, &QSlider::valueChanged, this, [this](int value)
+    {
+        config_.footmanTreatHpThresold = static_cast<double>(value) / 100'000;
+        updateWidgetValue();
+    });
+    connect(ui.footmanTreatThresoldLineEdit, &QLineEdit::editingFinished, this, [this]()
+    {
+        config_.footmanTreatHpThresold = ui.footmanTreatThresoldLineEdit->text().toDouble();
         updateWidgetValue();
     });
 
@@ -143,6 +197,8 @@ void EditAssistProgramConfigDialog::updateText()
     ui.backhomeFootmanHotkeyTextLabel->setText(EASYTR("Backhome Footman Hotkey"));
 
     ui.colorConfidenceTextLabel->setText(EASYTR("Color Confidence"));
+    ui.masterTreatThresoldTextLabel->setText(EASYTR("Master Treat Threshold"));
+    ui.footmanTreatThresoldTextLabel->setText(EASYTR("Footman Treat Threshold"));
     ui.backhomeHpThresholdTextLabel->setText(EASYTR("Footman Backhome HP Threshold"));
 
     ui.enableBackhomeOnFootmanHpLowCheckBox->setText(EASYTR("Enable Backhome On Footman HP Is Low"));
@@ -161,7 +217,8 @@ void EditAssistProgramConfigDialog::updateText()
 bool EditAssistProgramConfigDialog::eventFilter(QObject* obj, QEvent* event)
 {
     // 禁用滑条的鼠标滚轮响应。
-    if (obj == ui.colorConfidenceSlider || obj == ui.backhomeHpThresholdSlider)
+    if (obj == ui.colorConfidenceSlider || obj == ui.backhomeHpThresholdSlider ||
+        obj == ui.masterTreatThresoldSlider || obj == ui.footmanTreatThresoldSlider)
     {
         if (event->type() == QEvent::Wheel)
             return true;
@@ -182,6 +239,12 @@ void EditAssistProgramConfigDialog::updateWidgetValue()
 
     ui.colorConfidenceSlider->setValue(config_.colorConfidence * 100);
     ui.colorConfidenceLineEdit->setText(QString::number(config_.colorConfidence));
+
+    ui.masterTreatThresoldSlider->setValue(config_.masterTreatHpThresold * 100'000);
+    ui.masterTreatThresoldLineEdit->setText(QString::number(config_.masterTreatHpThresold));
+
+    ui.footmanTreatThresoldSlider->setValue(config_.footmanTreatHpThresold * 100'000);
+    ui.footmanTreatThresoldLineEdit->setText(QString::number(config_.footmanTreatHpThresold));
 
     ui.backhomeHpThresholdSlider->setValue(config_.footmanBackHomeHpThreshold * 100'000);
     ui.backhomeHpThresholdLineEdit->setText(QString::number(config_.footmanBackHomeHpThreshold));
