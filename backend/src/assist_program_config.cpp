@@ -11,7 +11,7 @@ AssistProgramConfig AssistProgramConfig::fromJson(const nlohmann::json& json)
 
     READ_FIELD_FROM_JSON(result, enableBackhomeOnFootmanHpLow, json, true);
 
-    READ_FIELD_FROM_JSON(result, treatTimeInterval, json, 1000);
+    READ_FIELD_FROM_JSON(result, treatTimeInterval, json, 500);
     READ_FIELD_FROM_JSON(result, frameGetterTimeout, json, 10 * 1000);
     READ_FIELD_FROM_JSON(result, cps, json, 10);
 
@@ -19,10 +19,10 @@ AssistProgramConfig AssistProgramConfig::fromJson(const nlohmann::json& json)
     READ_FIELD_FROM_JSON(result, footmanTreatKey, json, 0x74);
     READ_FIELD_FROM_JSON(result, backHomeKey, json, 0x76);
 
-    READ_FIELD_FROM_JSON(result, colorConfidence, json, 0.95);
-    READ_FIELD_FROM_JSON(result, masterTreatHpThresold, json, 0.412752);
+    READ_FIELD_FROM_JSON(result, colorConfidence, json, 0.90);
+    READ_FIELD_FROM_JSON(result, masterTreatHpThresold, json, 0.302752);
     READ_FIELD_FROM_JSON(result, footmanTreatHpThresold, json, 0.302752);
-    READ_FIELD_FROM_JSON(result, footmanBackHomeHpThreshold, json, 0.935369);
+    READ_FIELD_FROM_JSON(result, footmanBackHomeHpThreshold, json, 0.805369);
 
     READ_FIELD_FROM_JSON(result, outputLog, json, true);
     READ_FIELD_FROM_JSON(result, showDebugWindow, json, false);
