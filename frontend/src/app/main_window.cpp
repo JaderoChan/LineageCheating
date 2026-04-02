@@ -114,7 +114,7 @@ MainWindow::~MainWindow()
     if (!configDir.exists())
     {
         if (!configDir.mkpath("."))
-            debugOut(qCritical(), "Failed to create the directory: '%1'", DEFAULT_ASSIST_PROGRAM_WORK_CONFIG_DIR);
+            debugOut(qCritical(), "Failed to create the directory: '%1'.", DEFAULT_ASSIST_PROGRAM_WORK_CONFIG_DIR);
     }
 
     // 获取每个工作页面的 Assist Program Work Config 并保存至指定/默认路径。
@@ -137,7 +137,7 @@ MainWindow::~MainWindow()
         {
             debugOut(
                 qCritical(),
-                "Can't write assist program work config to: '%1'. Error: %2",
+                "Can't write assist program work config to: '%1'. Error: %2.",
                 config.configPath,
                 e.what());
         }
@@ -157,7 +157,7 @@ MainWindow::~MainWindow()
     {
         debugOut(
             qCritical(),
-            "Can't write work config file: '%1'. Error: %2",
+            "Can't write work config file: '%1'. Error: %2.",
             DEFAULT_GAME_DATA_FILEPATH,
             e.what());
     }
