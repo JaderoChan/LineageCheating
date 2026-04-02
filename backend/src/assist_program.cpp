@@ -235,6 +235,10 @@ void AssistProgram::mainWork()
 
     auto lastMasterTreatTime = high_resolution_clock::now();
     auto lastFootmanTreatTime = high_resolution_clock::now();
+
+    int masterGotThresholdFlag = 0;
+    int footmanGotThresholdFlag = 0;
+    int footmanGotBackhomeThresholdFlag = 0;
     while (!shouldClose_.load())
     {
         GameData gameData = getGameData();
@@ -283,14 +287,29 @@ void AssistProgram::mainWork()
                     static_cast<int>(color.r), static_cast<int>(color.g), static_cast<int>(color.b), similarity);
             }
 
-            if (similarity >= config.colorConfidence &&
-                (high_resolution_clock::now() - lastMasterTreatTime >= treatTimeInterval))
+            // 只有连续三帧采样点颜色都与血条底色相同才进行治疗。（下同）
+            if (similarity >= config.colorConfidence)
             {
-                if (config.outputLog)
-                    printf("Click F6\n");
+                if (masterGotThresholdFlag >= 3)
+                {
+                    masterGotThresholdFlag = 0;
+                    if (high_resolution_clock::now() - lastMasterTreatTime >= treatTimeInterval)
+                    {
+                        if (config.outputLog)
+                            printf("Click F6\n");
 
-                hid::clickKey(footmanHid_, config.masterTreatKey);
-                lastMasterTreatTime = high_resolution_clock::now();
+                        hid::clickKey(footmanHid_, config.masterTreatKey);
+                        lastMasterTreatTime = high_resolution_clock::now();
+                    }
+                }
+                else
+                {
+                    masterGotThresholdFlag++;
+                }
+            }
+            else
+            {
+                masterGotThresholdFlag = 0;
             }
         }
 
@@ -318,12 +337,29 @@ void AssistProgram::mainWork()
 
                 if (similarity >= config.colorConfidence)
                 {
-                    if (config.outputLog)
-                        printf("Footman HP is low, back to home and exit thread.\n");
+                    if (footmanGotBackhomeThresholdFlag >= 3)
+                    {
+                        footmanGotBackhomeThresholdFlag = 0;
 
-                    hid::clickKey(footmanHid_, config.backHomeKey);
-                    shouldClose_.store(true);
-                    continue;
+                        if (config.outputLog)
+                            printf("Footman HP is low, back to home and exit thread.\n");
+
+                        // 保存图像供后续研究
+                        cv::imwrite("./footman_low_hp.png", footmanFrame);
+                        cv::imwrite("./footman_low_hp_debug.png", getDebugFrame(footmanFrame, gameData, config, x));
+
+                        hid::clickKey(footmanHid_, config.backHomeKey);
+                        shouldClose_.store(true);
+                        continue;
+                    }
+                    else
+                    {
+                        footmanGotBackhomeThresholdFlag++;
+                    }
+                }
+                else
+                {
+                    footmanGotBackhomeThresholdFlag = 0;
                 }
             }
 
@@ -340,18 +376,32 @@ void AssistProgram::mainWork()
                     static_cast<int>(color.r), static_cast<int>(color.g), static_cast<int>(color.b), similarity);
             }
 
-            if (similarity >= config.colorConfidence &&
-                (high_resolution_clock::now() - lastFootmanTreatTime >= treatTimeInterval))
+            if (similarity >= config.colorConfidence)
             {
-                if (config.outputLog)
-                    printf("Click F5\n");
+                if (footmanGotThresholdFlag >= 3)
+                {
+                    footmanGotThresholdFlag = 0;
+                    if (high_resolution_clock::now() - lastFootmanTreatTime >= treatTimeInterval)
+                    {
+                        if (config.outputLog)
+                            printf("Click F5\n");
 
-                hid::clickKey(footmanHid_, config.footmanTreatKey);
-                lastFootmanTreatTime = high_resolution_clock::now();
+                        hid::clickKey(footmanHid_, config.footmanTreatKey);
+                        lastFootmanTreatTime = high_resolution_clock::now();
+                    }
+                }
+                else
+                {
+                    footmanGotThresholdFlag++;
+                }
+            }
+            else
+            {
+                footmanGotThresholdFlag = 0;
             }
         }
 
-        if (config.showDebugWindow && debugFrameCallback_)
+        if (config.showDebugWindow && debugFrameCallback_ && !shouldClose_.load())
         {
             cv::Mat masterDebugFrame = getDebugFrame(masterFrame, gameData, config, config.masterTreatHpThresold);
             cv::Mat footmanDebugFrame = getDebugFrame(footmanFrame, gameData, config, config.footmanTreatHpThresold);

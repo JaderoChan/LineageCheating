@@ -16,7 +16,7 @@ struct AssistProgramConfig
 
     bool enableBackhomeOnFootmanHpLow = true;   ///< 是否启用仆从机血量过低时回城。
 
-    uint32_t treatTimeInterval = 500;           ///< 使用治疗药水的最小间隔。
+    uint32_t treatTimeInterval = 200;           ///< 使用治疗药水的最小间隔。
     uint32_t frameGetterTimeout = 10 * 1000;    ///< 帧获取函数的超时时间，如果超时未获得帧将退出工作线程。默认为 `10` 秒。
     uint32_t cps = 10;                          ///< 鼠标每秒点击数。
 
