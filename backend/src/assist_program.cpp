@@ -102,10 +102,17 @@ bool AssistProgram::isClickKeyEnabled() const
 
 void AssistProgram::run()
 {
+    if (getConfig().outputLog)
+        printf("Assist Program run() start.\n");
+
     std::lock_guard<std::mutex> locker(runStopMtx_);
 
     if (isRunning_.load())
+    {
+        if (getConfig().outputLog)
+            printf("Assist Program run() fail: Is running.\n");
         return;
+    }
 
     shouldClose_.store(false);
     isRunning_.store(true);
@@ -123,10 +130,16 @@ void AssistProgram::run()
         if (activeThreads_.fetch_sub(1) == 1)
             isRunning_.store(false);
     });
+
+    if (getConfig().outputLog)
+        printf("Assist Program run() end.\n");
 }
 
 void AssistProgram::stop()
 {
+    if (getConfig().outputLog)
+        printf("Assist Program stop() start.\n");
+
     std::lock_guard<std::mutex> locker(runStopMtx_);
 
     shouldClose_.store(true);
@@ -138,6 +151,9 @@ void AssistProgram::stop()
 
     activeThreads_.store(0);
     isRunning_.store(false);
+
+    if (getConfig().outputLog)
+        printf("Assist Program stop() finished.\n");
 }
 
 bool AssistProgram::isRunning() const
@@ -148,6 +164,11 @@ bool AssistProgram::isRunning() const
 void AssistProgram::mainWork()
 {
     using namespace std::chrono;
+
+    {
+        if (getConfig().outputLog)
+            printf("Assist Program 'Main work' thread is start.\n");
+    }
 
     // 获取帧
     auto getNewValidFrame = [this](NDIlib_recv_instance_t recv, uint32_t timeout) -> cv::Mat
@@ -301,11 +322,19 @@ void AssistProgram::mainWork()
             debugFrameCallback_(masterDebugFrame, footmanDebugFrame);
         }
     }
+
+    {
+        if (getConfig().outputLog)
+            printf("Assist Program 'Main work' thread is end.\n");
+    }
 }
 
 void AssistProgram::clickKeyWork()
 {
     using namespace std::chrono;
+
+    if (getConfig().outputLog)
+        printf("Assist Program 'Click key' thraed is start.\n");
 
     auto lastClickTime = high_resolution_clock::now();
     while (!shouldClose_.load())
@@ -331,4 +360,7 @@ void AssistProgram::clickKeyWork()
         hid::clickMouseButton(footmanHid_, 1);
         lastClickTime = high_resolution_clock::now();
     }
+
+    if (getConfig().outputLog)
+        printf("Assist Program 'Click key' thraed is end.\n");
 }
