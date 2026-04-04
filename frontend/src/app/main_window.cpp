@@ -355,7 +355,39 @@ void MainWindow::onTextMessageReceived(const QString& msg)
         return;
 
     debugOut(qInfo(), "Received text message from: %1.", socket->peerAddress().toString());
-    // TODO
+
+    nlohmann::json j = nlohmann::json::parse(msg.toStdString(), nullptr,  false, true);
+    if (j.is_discarded())
+    {
+        debugOut(qCritical(), "Failed parse json from client: %1.", socket->peerAddress().toString());
+        return;
+    }
+
+    int index, flag;
+    try
+    {
+        index = j.at("index");
+        flag = j.at("flag");    // 1: run, 2: stop.
+    }
+    catch (const std::exception& e)
+    {
+        debugOut(qCritical(), "Illegal json data from client: %1.", socket->peerAddress().toString());
+        return;
+    }
+
+    auto page = qobject_cast<AssistProgramOperatePage*>(ui.tabWidget->widget(index));
+    if (!page)
+    {
+        debugOut(qWarning(), "Got index (%1) is invalid, from client: %2.", index, socket->peerAddress().toString());
+        return;
+    }
+
+    switch (flag)
+    {
+        case 1:     page->run();
+        case 2:     page->stop();
+        default:    break;
+    }
 }
 
 void MainWindow::cleanupWorkPage(QWidget* wgt)
