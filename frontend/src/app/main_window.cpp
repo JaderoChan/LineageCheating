@@ -169,7 +169,6 @@ MainWindow::~MainWindow()
     // 关闭客户端连接
     for (auto socket : clients_)
     {
-        socket->disconnect();
         socket->close();
         socket->deleteLater();
     }
@@ -384,8 +383,8 @@ void MainWindow::onTextMessageReceived(const QString& msg)
 
     switch (flag)
     {
-        case 1:     page->run();
-        case 2:     page->stop();
+        case 1:     page->run(); break;
+        case 2:     page->stop(); break;
         default:    break;
     }
 }

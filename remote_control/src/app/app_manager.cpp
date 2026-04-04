@@ -19,16 +19,16 @@ AppManager::AppManager(QObject* parent)
     hotkeyMgr_->setRunHotkey(settings.runHotkey);
     hotkeyMgr_->setStopHotkey(settings.stopHotkey);
 
-    QObject::connect(hotkeyMgr_, &HotkeyManager::runHotkeyTriggered, this, [this]() { onHotkeyTriggered(true); });
-    QObject::connect(hotkeyMgr_, &HotkeyManager::runHotkeyTriggered, this, [this]() { onHotkeyTriggered(false); });
+    connect(hotkeyMgr_, &HotkeyManager::runHotkeyTriggered, this, [this]() { onHotkeyTriggered(true); });
+    connect(hotkeyMgr_, &HotkeyManager::stopHotkeyTriggered, this, [this]() { onHotkeyTriggered(false); });
 
-    QObject::connect(systemTray_, &SystemTray::connectActionTriggered, this, &AppManager::connect);
-    QObject::connect(systemTray_, &SystemTray::disconnectActionTriggered, this, &AppManager::disconnect);
-    QObject::connect(systemTray_, &SystemTray::settingsActionTriggered, this, &AppManager::onSettingsActionTriggered);
-    QObject::connect(systemTray_, &SystemTray::exitActionTriggered, this, [=]() { qApp->exit(); });
+    connect(systemTray_, &SystemTray::connectActionTriggered, this, &AppManager::connectToServer);
+    connect(systemTray_, &SystemTray::disconnectActionTriggered, this, &AppManager::disconnectFromServer);
+    connect(systemTray_, &SystemTray::settingsActionTriggered, this, &AppManager::onSettingsActionTriggered);
+    connect(systemTray_, &SystemTray::exitActionTriggered, this, [=]() { qApp->exit(); });
 
-    QObject::connect(socket_, &QWebSocket::connected, this, &AppManager::onConnected);
-    QObject::connect(socket_, &QWebSocket::disconnected, this, &AppManager::onDisconnected);
+    connect(socket_, &QWebSocket::connected, this, &AppManager::onConnected);
+    connect(socket_, &QWebSocket::disconnected, this, &AppManager::onDisconnected);
 }
 
 AppManager::~AppManager()
@@ -36,14 +36,20 @@ AppManager::~AppManager()
     disconnect();
 }
 
-void AppManager::connect()
+void AppManager::connectToServer()
 {
-    disconnect();
+    disconnectFromServer();
     auto settings = loadSettings();
-    socket_->open(QUrl(settings.serverUrl));
+
+    QString urlStr = settings.serverUrl;
+    if (!urlStr.startsWith("ws://") && !urlStr.startsWith("wss://"))
+        urlStr = "ws://" + urlStr;
+
+    debugOut(qInfo(), "Server URL: %1.", urlStr);
+    socket_->open(urlStr);
 }
 
-void AppManager::disconnect()
+void AppManager::disconnectFromServer()
 {
     if (isConnected())
         socket_->close();
@@ -75,7 +81,7 @@ void AppManager::onConnected()
 
 void AppManager::onDisconnected()
 {
-    debugOut(qInfo(), "Disonnected: %1.", socket_->peerAddress().toString());
+    debugOut(qInfo(), "Disconnected.");
     systemTray_->updateConnectState(false);
 }
 

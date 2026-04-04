@@ -14,8 +14,8 @@ public:
     explicit AppManager(QObject* parent = nullptr);
     ~AppManager();
 
-    void connect();
-    void disconnect();
+    void connectToServer();
+    void disconnectFromServer();
     bool isConnected() const;
 
     void sendTextMessage(const QString& text);

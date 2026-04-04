@@ -13,7 +13,7 @@ Settings loadSettings()
     auto runHotkeyStr = qsettings.value("RunHotkey", "Ctrl+F11").toString().toStdString();
     settings.runHotkey = gbhk::KeyCombination::fromString(runHotkeyStr);
 
-    auto stopHotkeyStr = qsettings.value("RunHotkey", "Ctrl+F12").toString().toStdString();
+    auto stopHotkeyStr = qsettings.value("StopHotkey", "Ctrl+F12").toString().toStdString();
     settings.stopHotkey = gbhk::KeyCombination::fromString(stopHotkeyStr);
 
     settings.serverUrl = qsettings.value("ServerURL", "").toString();
