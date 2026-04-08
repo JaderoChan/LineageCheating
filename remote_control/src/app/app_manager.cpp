@@ -111,6 +111,10 @@ void AppManager::onSettingsActionTriggered()
     {
         if (newSettings.language != settings.language)
             systemTray_->updateText();
+        if (newSettings.runHotkey != settings.runHotkey)
+            hotkeyMgr_->setRunHotkey(newSettings.runHotkey);
+        if (newSettings.stopHotkey != settings.stopHotkey)
+            hotkeyMgr_->setStopHotkey(newSettings.stopHotkey);
         saveSettings(newSettings);
     }
 }
