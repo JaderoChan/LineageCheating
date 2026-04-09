@@ -419,10 +419,9 @@ void AssistProgramOperatePage::onHidConnectButtonClicked()
 
 void AssistProgramOperatePage::updateRunningStateWidgets()
 {
-    static bool lastIsRunning = false;
     bool currentIsRunning = isRunning();
     // 运行状态发生了改变，更新信息。
-    if (lastIsRunning != currentIsRunning)
+    if (lastIsRunning_ != currentIsRunning)
     {
         if (currentIsRunning)
         {
@@ -468,7 +467,7 @@ void AssistProgramOperatePage::updateRunningStateWidgets()
             updateConnectStateWidgets();
         }
 
-        lastIsRunning = currentIsRunning;
+        lastIsRunning_ = currentIsRunning;
     }
 }
 
