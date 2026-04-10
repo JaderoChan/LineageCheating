@@ -10,10 +10,10 @@ Settings loadSettings()
     settings.language = qsettings.value("Language", getCurrentSystemLang()).value<Language>();
     settings.index = qsettings.value("Index", 0).toInt();
 
-    auto runHotkeyStr = qsettings.value("RunHotkey", "Ctrl+F11").toString().toStdString();
+    auto runHotkeyStr = qsettings.value("RunHotkey", "Alt+F11").toString().toStdString();
     settings.runHotkey = gbhk::KeyCombination::fromString(runHotkeyStr);
 
-    auto stopHotkeyStr = qsettings.value("StopHotkey", "Ctrl+F12").toString().toStdString();
+    auto stopHotkeyStr = qsettings.value("StopHotkey", "Alt+F12").toString().toStdString();
     settings.stopHotkey = gbhk::KeyCombination::fromString(stopHotkeyStr);
 
     settings.serverUrl = qsettings.value("ServerURL", "").toString();
