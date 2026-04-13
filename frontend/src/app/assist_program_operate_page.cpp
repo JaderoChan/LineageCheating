@@ -142,13 +142,6 @@ AssistProgramWorkConfig AssistProgramOperatePage::getAssistProgramWorkConfig() c
 
 void AssistProgramOperatePage::setAssistProgramWorkConfig(const AssistProgramWorkConfig& config)
 {
-    if (debugFrameShowed_ && !config.config.showDebugWindow)
-    {
-        cv::destroyWindow("Master");
-        cv::destroyWindow("Footman");
-        debugFrameShowed_ = false;
-    }
-
     config_ = config;
     if (assistProgram_)
         assistProgram_->setConfig(config_.config);
@@ -179,10 +172,22 @@ void AssistProgramOperatePage::run()
         {
             QMetaObject::invokeMethod(this, [this, masterDebugFrame, footmanDebugFrame]()
             {
-                cv::imshow("Master", masterDebugFrame);
-                cv::imshow("Footman", footmanDebugFrame);
-                cv::waitKey(1);
-                debugFrameShowed_ = true;
+                if (config_.config.showDebugWindow)
+                {
+                    cv::imshow("Master", masterDebugFrame);
+                    cv::imshow("Footman", footmanDebugFrame);
+                    cv::waitKey(1);
+                    debugFrameShowed_ = true;
+                }
+                else
+                {
+                    if (debugFrameShowed_)
+                    {
+                        cv::destroyWindow("Master");
+                        cv::destroyWindow("Footman");
+                        debugFrameShowed_ = false;
+                    }
+                }
             }, Qt::QueuedConnection);
         });
     assistProgram_->run();
