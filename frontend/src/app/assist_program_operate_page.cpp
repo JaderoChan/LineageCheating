@@ -152,7 +152,7 @@ void AssistProgramOperatePage::run()
     if (isRunning())
         return;
 
-    if (!masterNdiConnected_ || !footmanNdiConnected_)// || !footmanHidConnected_)
+    if (!masterNdiConnected_ || !footmanNdiConnected_ || !footmanHidConnected_)
     {
         QMessageBox::warning(
             this,
