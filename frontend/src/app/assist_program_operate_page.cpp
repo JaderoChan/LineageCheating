@@ -149,6 +149,8 @@ void AssistProgramOperatePage::setAssistProgramWorkConfig(const AssistProgramWor
 
 void AssistProgramOperatePage::run()
 {
+    debugOut(qDebug(), "run() be called.");
+
     if (isRunning())
         return;
 
@@ -162,6 +164,7 @@ void AssistProgramOperatePage::run()
         return;
     }
 
+    debugOut(qDebug(), "make_unique<AssistProgram>() called.");
     assistProgram_ = std::make_unique<AssistProgram>(
         masterRecv_,
         footmanRecv_,
@@ -190,10 +193,14 @@ void AssistProgramOperatePage::run()
                 }
             }, Qt::QueuedConnection);
         });
+    debugOut(qDebug(), "make_unique<AssistProgram>() finished.");
     assistProgram_->run();
     runningStateUpdateTimer_.start();
+    debugOut(qDebug(), "Assist program is running.");
 
+    debugOut(qDebug(), "updateRunningStateWidgets() called.");
     updateRunningStateWidgets();
+    debugOut(qDebug(), "updateRunningStateWidgets() finished.");
 }
 
 void AssistProgramOperatePage::stop()
