@@ -5,6 +5,7 @@
 #include <qthread.h>
 #include <qtabbar.h>
 #include <qnetworkinterface.h>
+#include <qmessagebox.h>
 
 #include <utils/debug_output.h>
 #include <utils/file_io.h>
@@ -220,7 +221,25 @@ void MainWindow::addTabPage(bool jumpTo)
 
 void MainWindow::removeTabPage(int index)
 {
-    auto page = ui.tabWidget->widget(index);
+    auto page = qobject_cast<AssistProgramOperatePage*>(ui.tabWidget->widget(index));
+    if (!page)
+        return;
+
+    if (page->isRunning())
+    {
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle(EASYTR("Warning"));
+        msgBox.setText(EASYTR("The work is running, are you sure exit the work and close page?"));
+
+        auto confirmBtn = msgBox.addButton(EASYTR("Ok"), QMessageBox::AcceptRole);
+        auto cancelBtn = msgBox.addButton(EASYTR("Cancel"), QMessageBox::RejectRole);
+        msgBox.setDefaultButton(cancelBtn);
+
+        msgBox.exec();
+
+        if (msgBox.clickedButton() == cancelBtn)
+            return;
+    }
 
     // 先从界面中移除标签页。
     ui.tabWidget->removeTab(index);

@@ -142,6 +142,13 @@ AssistProgramWorkConfig AssistProgramOperatePage::getAssistProgramWorkConfig() c
 
 void AssistProgramOperatePage::setAssistProgramWorkConfig(const AssistProgramWorkConfig& config)
 {
+    if (debugFrameShowed_ && !config.config.showDebugWindow)
+    {
+        cv::destroyWindow("Master");
+        cv::destroyWindow("Footman");
+        debugFrameShowed_ = false;
+    }
+
     config_ = config;
     if (assistProgram_)
         assistProgram_->setConfig(config_.config);
