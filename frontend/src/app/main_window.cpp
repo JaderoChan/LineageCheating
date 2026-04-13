@@ -153,6 +153,7 @@ MainWindow::~MainWindow()
     // 关闭客户端连接
     for (auto socket : clients_)
     {
+        socket->disconnect();
         socket->close();
         socket->deleteLater();
     }
