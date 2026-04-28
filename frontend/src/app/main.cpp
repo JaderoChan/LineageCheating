@@ -7,6 +7,7 @@
 #include <utils/debug_output.h>
 
 #include "logo_icon.h"
+#include "intro_dialog.h"
 #include "main_window.h"
 #include "settings.h"
 
@@ -26,14 +27,23 @@ int main(int argc, char* argv[])
         setLanguage(settings.language);
     }
 
+    {
+        IntroDialog dlg;
+        if (!dlg.execForAccess())
+        {
+            debugOut(qCritical(), "Password error, user exit program.");
+            return 1;
+        }
+    }
+
+    MainWindow wgt;
+    wgt.show();
+
     if (!NDIlib_initialize())
     {
         debugOut(qCritical(), "Failed to initialize NDI library.");
         return -1;
     }
-
-    MainWindow wgt;
-    wgt.show();
 
     int ret = a.exec();
 

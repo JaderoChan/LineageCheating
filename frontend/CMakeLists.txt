@@ -43,6 +43,7 @@ set(APP_COPYRIGHT_TEXT "Copyright (c) 2026 JaderoChan")
 set(DEFAULT_GAME_DATA_FILEPATH "./data/game_data.json")
 set(DEFAULT_WORK_CONFIG_FILEPATH "./work_config.json")
 set(DEFAULT_ASSIST_PROGRAM_WORK_CONFIG_DIR "./assist_program_configs")
+set(PASSWORD_SHA256 "9a6f8a106c0b312155e1fb3e94c88f6a0a65c4980dbdf76285a628819c0843c3")
 
 ###############
 # 定义常用路径 #
