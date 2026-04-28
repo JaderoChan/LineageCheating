@@ -29,7 +29,7 @@ struct AssistProgramConfig
     double footmanTreatHpThresold = 0.302752;   ///< 仆从机治疗阈值。
     double footmanBackHomeHpThreshold = 0.705369;   ///< 当血条降低到此阈值时将仆从回城，并退出工作线程，以防游戏人物意外死亡。
 
-    bool outputLog = true;                      ///< 启用日志。
+    bool outputLog = false;                     ///< 启用日志。
     bool showDebugWindow = false;               ///< 是否显示Debug窗口，可显示处理后的游戏帧。
     bool limitDebugWindowSize = true;           ///< 限制Debug窗口的大小。
     int debugWindowMaxWidth = 1080;

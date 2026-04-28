@@ -24,7 +24,7 @@ AssistProgramConfig AssistProgramConfig::fromJson(const nlohmann::json& json)
     READ_FIELD_FROM_JSON(result, footmanTreatHpThresold, json, 0.302752);
     READ_FIELD_FROM_JSON(result, footmanBackHomeHpThreshold, json, 0.705369);
 
-    READ_FIELD_FROM_JSON(result, outputLog, json, true);
+    READ_FIELD_FROM_JSON(result, outputLog, json, false);
     READ_FIELD_FROM_JSON(result, showDebugWindow, json, false);
     READ_FIELD_FROM_JSON(result, limitDebugWindowSize, json, true);
     READ_FIELD_FROM_JSON(result, debugWindowMaxWidth, json, 1080);
