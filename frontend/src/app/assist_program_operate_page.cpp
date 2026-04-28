@@ -272,7 +272,10 @@ void AssistProgramOperatePage::onEditConfigButtonClicked()
     bool isAccept = false;
     config.config = dlg.execForConfig(isAccept);
     if (isAccept)
+    {
         setAssistProgramWorkConfig(config);
+        emit onAssistProgramWorkConfigChanged(config);
+    }
 }
 
 void AssistProgramOperatePage::onNdiConnectButtonClicked(HostFlag flag)

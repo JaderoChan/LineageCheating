@@ -205,6 +205,26 @@ void MainWindow::addTabPage(const WorkConfig& config, bool jumpTo)
 
     // 新建工作页面。
     auto page = new AssistProgramOperatePage(gameData, assistProgramWorkConfig);
+    connect(page, &AssistProgramOperatePage::onAssistProgramWorkConfigChanged,
+        this, [=](const AssistProgramWorkConfig& config)
+    {
+        WorkConfig& workCfg = pageAndConfigMap_[page];
+        if (workCfg.configPath.isEmpty())
+            workCfg.configPath = makeAvailablePath(QDir(DEFAULT_ASSIST_PROGRAM_WORK_CONFIG_DIR), "config", ".json");
+
+        try
+        {
+            config.toFile(workCfg.configPath);
+        }
+        catch (const std::exception& e)
+        {
+            debugOut(
+                qCritical(),
+                "Can't write assist program work config to: '%1'. Error: %2.",
+                workCfg.configPath,
+                e.what());
+        }
+    });
 
     int index = ui.tabWidget->addTab(page, config.name);
     // 处理页面切换逻辑。

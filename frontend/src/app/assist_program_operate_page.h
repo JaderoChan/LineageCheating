@@ -38,6 +38,9 @@ public:
     void stop();
     bool isRunning() const;
 
+signals:
+    void onAssistProgramWorkConfigChanged(const AssistProgramWorkConfig&);
+
 protected:
     void updateText() override;
 
