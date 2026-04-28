@@ -81,7 +81,6 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui.actionAbout, &QAction::triggered, this, [this]()
     {
         auto dlg = new AboutDialog(this);
-        dlg->setAttribute(Qt::WA_DeleteOnClose);
         dlg->show();
     });
 

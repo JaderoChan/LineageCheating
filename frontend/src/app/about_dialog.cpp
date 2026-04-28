@@ -3,8 +3,11 @@
 #include <config.h>
 
 AboutDialog::AboutDialog(QWidget* parent)
+    : TrDialog(parent)
 {
     ui.setupUi(this);
+
+    setAttribute(Qt::WA_DeleteOnClose);
 
     updateText();
 }
