@@ -10,6 +10,7 @@
 #include <utils/debug_output.h>
 #include <utils/file_io.h>
 
+#include "about_dialog.h"
 #include "config.h"
 #include "search_ndi_sources_dialog.h"
 #include "settings.h"
@@ -77,6 +78,12 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Action 信号槽
     connect(ui.actionSearchNdiSources, &QAction::triggered, this, &MainWindow::onSearchNdiActivated);
+    connect(ui.actionAbout, &QAction::triggered, this, [this]()
+    {
+        auto dlg = new AboutDialog(this);
+        dlg->setAttribute(Qt::WA_DeleteOnClose);
+        dlg->show();
+    });
 
     // 配置 Web Socket 服务器
     Settings settings = loadSettings();
