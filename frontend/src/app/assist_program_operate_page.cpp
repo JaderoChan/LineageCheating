@@ -81,7 +81,7 @@ AssistProgramOperatePage::AssistProgramOperatePage(
     connect(ui.masterNdiSourceNameInputLineEdit, &QLineEdit::editingFinished,
         this, [this]() { config_.masterNdiSourceName = ui.masterNdiSourceNameInputLineEdit->text(); });
     connect(ui.footmanNdiSourceNameInputLineEdit, &QLineEdit::editingFinished,
-        this, [this]() { config_.footmanNdiSourceName = ui.footmanHidPidInputLineEdit->text(); });
+        this, [this]() { config_.footmanNdiSourceName = ui.footmanNdiSourceNameInputLineEdit->text(); });
     connect(ui.footmanHidVidInputLineEdit, &QLineEdit::editingFinished,
         this, [this]() { config_.footmanHidInfo.vid = ui.footmanHidVidInputLineEdit->text().toUInt(); });
     connect(ui.footmanHidPidInputLineEdit, &QLineEdit::editingFinished,
